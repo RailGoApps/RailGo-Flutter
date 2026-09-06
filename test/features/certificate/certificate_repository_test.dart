@@ -25,7 +25,7 @@ class _FakeGate implements AuthGate {
 
   @override
   Future<GateResult> verifyPin(String input) async =>
-      GateResult(passed: false, method: GateMethod.denied);
+      const GateResult(passed: false, method: GateMethod.denied);
   @override
   Future<bool> setupPin(String pin) async => false;
   @override
