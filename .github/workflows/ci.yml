@@ -405,3 +405,114 @@ jobs:
           echo "  4. self-hosted runner with DevEco Studio/CLI, then: flutter build hap --release"
           echo ""
           echo "This job only prints notes (continue-on-error) and never blocks CI."
+
+  # ============================================================================
+  # report — 自动整合报错（用户需求：aggregate all failures into one place）
+  #   1. 汇总 6 个 job 的成败矩阵 → Job Summary（Actions 页 Markdown）
+  #   2. gh run view --log-failed 抓全量失败日志 → 正则提取/去重错误行
+  #   3. PR 场景：复用同一条 <!-- ci-error-report --> 评论（更新不刷屏）
+  #      push 场景：评论到 commit
+  # ============================================================================
+  report:
+    name: Consolidated error report
+    needs: [lint, test, license-scan, build-android, build-ios, build-harmony]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Build job status matrix
+        env:
+          R_LINT: ${{ needs.lint.result }}
+          R_TEST: ${{ needs.test.result }}
+          R_LIC: ${{ needs.license-scan.result }}
+          R_AND: ${{ needs.build-android.result }}
+          R_IOS: ${{ needs.build-ios.result }}
+          R_HAR: ${{ needs.build-harmony.result }}
+        run: |
+          icon() { case "$1" in success) echo "✅";; failure) echo "❌";; cancelled) echo "🚫";; skipped) echo "⏭️";; *) echo "❓";; esac; }
+          {
+            echo "## CI 汇总报告"
+            echo
+            echo "| Job | 结果 |"
+            echo "|---|---|"
+            echo "| lint | $(icon "$R_LINT") $R_LINT |"
+            echo "| test (+coverage gate) | $(icon "$R_TEST") $R_TEST |"
+            echo "| license-scan | $(icon "$R_LIC") $R_LIC |"
+            echo "| build-android | $(icon "$R_AND") $R_AND |"
+            echo "| build-ios | $(icon "$R_IOS") $R_IOS |"
+            echo "| build-harmony (placeholder) | $(icon "$R_HAR") $R_HAR |"
+            echo
+          } > report.md
+          if [ "$R_LINT$R_TEST$R_LIC$R_AND$R_IOS" != "successsuccesssuccesssuccesssuccess" ]; then
+            echo "HAS_FAILURE=1" >> "$GITHUB_ENV"
+          else
+            echo "### 全部通过 🎉" >> report.md
+          fi
+
+      - name: Extract errors from failed logs
+        if: env.HAS_FAILURE == '1'
+        run: |
+          gh run view "$GITHUB_RUN_ID" --log-failed > failed.log 2>/dev/null || true
+          # 提取错误行：编译器/analyzer/测试/脚本 常见模式，去空格后去重，保序
+          grep -aiE 'error *:|error:|\[E\]|FAILED|Exception:|^[0-9]+ -[0-9]+: |some tests? failed' failed.log             | sed 's/^[[:space:]]*//' | cut -c1-240 | awk '!seen[$0]++' | head -n 60 > errors.txt || true
+          if [ -s errors.txt ]; then
+            {
+              echo "### 🔍 错误摘录（去重后前 60 条，完整日志见上方各 job）"
+              echo
+              echo '```text'
+              cat errors.txt
+              echo '```'
+            } >> report.md
+          else
+            echo "### 🔍 未能从日志提取到错误行（请点开失败 job 查看）" >> report.md
+          fi
+
+      - name: Write to Job Summary
+        if: always()
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment on PR (update in place) or commit
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('report.md', 'utf8');
+            const marker = '<!-- ci-error-report -->';
+            const payload = body.startsWith(marker) ? body : marker + '\n' + body;
+            const isPR = context.issue && context.payload.pull_request;
+            if (isPR) {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              const prev = comments.find(c => c.body && c.body.includes(marker));
+              if (prev) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  comment_id: prev.id, body: payload,
+                });
+                core.info('updated existing report comment ' + prev.id);
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: context.issue.number, body: payload,
+                });
+              }
+            } else if (process.env.HAS_FAILURE === '1') {
+              // push 场景：仅在失败时评论 commit，避免噪音
+              await github.rest.repos.createCommitComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                commit_sha: context.sha, body: payload,
+              });
+            } else {
+              core.info('push 全绿，不评论 commit');
+            }
+
