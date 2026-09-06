@@ -1,0 +1,195 @@
+# ============================================================================
+# RailGo-Flutter — Release
+# Repository: https://github.com/RailGoApps/RailGo-Flutter
+#
+# 触发: push 版本 tag，例如:
+#   git tag v1.2.3 && git push origin v1.2.3
+#
+# Pipeline:
+#   1. quality - 通过 workflow_call 复用 ci.yml 的 lint + test（含 80% 核心
+#                模块覆盖率门禁）+ license-scan；ci.yml 的重型构建 job 在被
+#                调用时默认跳过（run-builds=false），产物由下方矩阵构建。
+#   2. build   - 矩阵构建: Android APK（混淆）、Android AAB（混淆）、
+#                iOS（no-codesign，无签名产物供侧载/企业重签）
+#   3. release - softprops/action-gh-release@v2 附加产物并生成 GitHub
+#                Release；Changelog 由上一 tag 到当前 tag 的
+#                `git log --oneline` 拼接生成。draft: false。
+# ============================================================================
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+# Never cancel a release in flight.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Quality gates (reuse ci.yml via workflow_call)
+    # 复用 ci.yml: lint、test（coverage/lcov.info 核心模块 >= 80% 门禁）、
+    # license-scan。本 job 无本地 steps，全部在 ci.yml 中执行。
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: Build ${{ matrix.label }}
+    needs: quality
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: android-apk
+            os: ubuntu-latest
+          - label: android-aab
+            os: ubuntu-latest
+          - label: ios-unsigned
+            os: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (Temurin)
+        if: matrix.label != 'ios-unsigned'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter (stable 3.27.4)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.27.4'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Application id: com.azstudio.railgo (Android + iOS)
+      - name: Build Android APK (release, obfuscated)
+        if: matrix.label == 'android-apk'
+        run: flutter build apk --release --obfuscate --split-debug-info=build/symbols
+
+      - name: Build Android AAB (release, obfuscated)
+        if: matrix.label == 'android-aab'
+        run: flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
+
+      # 无签名产物（--no-codesign），供侧载 sideloading 或企业重签。
+      - name: Build iOS (release, no codesign)
+        if: matrix.label == 'ios-unsigned'
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned iOS .app into zip
+        if: matrix.label == 'ios-unsigned'
+        run: |
+          cd build/ios/iphoneos
+          zip -qry RailGo-iOS-unsigned-Release.zip Runner.app
+
+      - name: Upload APK artifact
+        if: matrix.label == 'android-apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+      - name: Upload AAB artifact
+        if: matrix.label == 'android-aab'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-android-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload iOS unsigned zip artifact
+        if: matrix.label == 'ios-unsigned'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-ios-unsigned
+          path: build/ios/iphoneos/RailGo-iOS-unsigned-Release.zip
+          if-no-files-found: error
+
+      - name: Upload obfuscation symbols (kept as workflow artifact only)
+        if: matrix.label != 'ios-unsigned'
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ matrix.label }}
+          path: build/symbols/
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: [quality, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout full history (needed for changelog)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Changelog: git log --oneline from the previous tag (or full history
+      # for the first tagged release) up to the current tag.
+      - name: Generate changelog (git log since previous tag)
+        run: |
+          set -euo pipefail
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          PREV_TAG="$(git describe --tags --abbrev=0 "${CURRENT_TAG}^" 2>/dev/null || true)"
+          if [ -n "${PREV_TAG}" ]; then
+            RANGE="${PREV_TAG}..${CURRENT_TAG}"
+          else
+            RANGE="${CURRENT_TAG}"
+            PREV_TAG="(none, first tagged release)"
+          fi
+          {
+            echo "## RailGo ${CURRENT_TAG}"
+            echo ""
+            echo "Commits ${RANGE} — previous tag: ${PREV_TAG}"
+            echo ""
+            echo '```'
+            git log --oneline "${RANGE}"
+            echo '```'
+            echo ""
+            echo "**Artifacts**"
+            echo "- Android APK (obfuscated release)"
+            echo "- Android AAB (obfuscated release, for store upload)"
+            echo "- iOS unsigned build (Runner.app zip, for sideloading / enterprise re-signing)"
+          } > CHANGELOG.md
+          echo "----- Generated CHANGELOG.md -----"
+          cat CHANGELOG.md
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: 'release-*'
+          merge-multiple: true
+
+      - name: List release files
+        run: ls -la dist
+
+      - name: Create GitHub Release (softprops/action-gh-release@v2)
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: 'RailGo ${{ github.ref_name }}'
+          draft: false
+          # v1.2.3 -> release; v1.2.3-rc.1 / v1.2.3-beta -> prerelease
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          body_path: CHANGELOG.md
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.apk
+            dist/*.aab
+            dist/*.zip

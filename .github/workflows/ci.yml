@@ -1,0 +1,407 @@
+# ============================================================================
+# RailGo-Flutter — Continuous Integration
+# Repository: https://github.com/RailGoApps/RailGo-Flutter
+# The Flutter project lives at the repository root (pubspec.yaml, lib/, test/,
+# assets/docs/).
+#
+# Jobs (in order):
+#   1. lint          - dart format check + flutter analyze --fatal-infos
+#   2. test          - flutter test --coverage + inline gate: line coverage for
+#                      lib/core/crypto (SM4) AND lib/features/trip (trip state
+#                      machine + connection checks) must each be >= 80%
+#   3. license-scan  - static heuristic scan of pubspec.yaml dependencies for
+#                      copyleft licenses (GPL/LGPL/AGPL/SSPL). NOT legal advice.
+#   4. build-android - obfuscated release APK + AAB (app id com.azstudio.railgo)
+#   5. build-ios     - unsigned release build (无签名产物，供侧载/企业重签)
+#   6. build-harmony - placeholder (continue-on-error): HarmonyOS has no
+#                      official GitHub-hosted runner
+#
+# The workflow is also reusable: release.yml calls it via workflow_call to
+# re-run the quality gates; the heavy build jobs are skipped for such calls
+# (input run-builds defaults to false).
+# ============================================================================
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - flutter-rewrite
+  pull_request:
+  workflow_call:
+    inputs:
+      run-builds:
+        description: 'Run the heavy build jobs (android/ios/harmony) in addition to the quality gates'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Same branch/PR: cancel superseded runs.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (dart format + flutter analyze)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter (stable 3.27.4)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.27.4'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enforce dart formatting (lib + test)
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Static analysis (infos treated as fatal)
+        run: flutter analyze --fatal-infos
+
+  test:
+    name: Test + coverage gate (core modules >= 80%)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter (stable 3.27.4)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.27.4'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run unit tests with coverage
+        run: flutter test --coverage
+
+      # Gate: compute line coverage ONLY for the two core module prefixes
+      # (lib/core/crypto, lib/features/trip); either one below 80% fails CI.
+      # Inline python parsing coverage/lcov.info — no external script files.
+      - name: Enforce core-module line coverage (>= 80%)
+        run: |
+          python3 - <<'PY'
+          """Coverage gate for lib/core/crypto and lib/features/trip (>= 80% each)."""
+          import os
+          import sys
+
+          LCOV = "coverage/lcov.info"
+          THRESHOLD = 80.0
+          PREFIXES = ("lib/core/crypto", "lib/features/trip")
+
+          if not os.path.isfile(LCOV):
+              print("::error::coverage report not found at %s - did 'flutter test --coverage' run?" % LCOV)
+              sys.exit(1)
+
+          records = []
+          sf = None
+          hits = []
+
+          def flush():
+              global sf, hits
+              if sf is not None:
+                  records.append((sf, hits))
+              sf = None
+              hits = []
+
+          with open(LCOV, "r", encoding="utf-8") as fh:
+              for raw in fh:
+                  line = raw.strip()
+                  if line.startswith("SF:"):
+                      flush()
+                      sf = line[3:].replace("\\", "/")
+                      hits = []
+                  elif line.startswith("DA:") and sf is not None:
+                      parts = line[3:].split(",")
+                      if len(parts) >= 2:
+                          try:
+                              hits.append(int(parts[1]))
+                          except ValueError:
+                              pass
+                  elif line == "end_of_record":
+                      flush()
+          flush()
+
+          def under(path, prefix):
+              """True when an lcov source file belongs to the module prefix."""
+              p = "/" + path.strip("/")
+              pre = "/" + prefix.strip("/")
+              return p == pre or p.startswith(pre + "/") or (pre + "/") in p
+
+          failed = False
+          print("Core module line coverage (threshold %.1f%%):" % THRESHOLD)
+          for prefix in PREFIXES:
+              files = [r for r in records if under(r[0], prefix)]
+              total = sum(len(h) for _, h in files)
+              covered = sum(1 for _, h in files for x in h if x > 0)
+              if total == 0:
+                  print("::error::no coverage data found for module '%s' (0 instrumented lines)" % prefix)
+                  print("  %s: NO DATA (0/0 lines, %d files) -> FAIL" % (prefix, len(files)))
+                  failed = True
+                  continue
+              pct = 100.0 * covered / total
+              status = "OK" if pct >= THRESHOLD else "FAIL"
+              print("  %s: %.2f%% (%d/%d lines, %d files) -> %s" % (prefix, pct, covered, total, len(files), status))
+              if pct < THRESHOLD:
+                  print("::error::module '%s' coverage %.2f%% is below the %.1f%% threshold" % (prefix, pct, THRESHOLD))
+                  failed = True
+
+          print("Coverage gate: %s" % ("FAILED" if failed else "PASSED"))
+          sys.exit(1 if failed else 0)
+          PY
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+          if-no-files-found: error
+
+  license-scan:
+    name: License scan (heuristic, not legal advice)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository (only pubspec.yaml is inspected)
+        uses: actions/checkout@v4
+
+      # 静态启发式扫描（非法律意见）：仅用 python 解析 pubspec.yaml 的
+      # dependencies / dev_dependencies 段（不执行 flutter），任一依赖命中
+      # 拒绝清单（GPL / LGPL / AGPL / GPL-2.0 / GPL-3.0 / SSPL 字样或已知
+      # copyleft 包名）即 fail；同时输出依赖清单摘要。
+      - name: Scan dependencies for copyleft licenses
+        run: |
+          python3 - <<'PY'
+          """Static heuristic license scan of pubspec.yaml dependencies (NOT legal advice)."""
+          import os
+          import re
+          import sys
+
+          PUBSPEC = "pubspec.yaml"
+          SECTIONS = ("dependencies", "dev_dependencies")
+          # "gpl" substring already covers GPL / GPL-2.0 / GPL-3.0 / LGPL / AGPL.
+          DENY_KEYWORDS = ("gpl", "sspl", "general public license", "affero")
+          # Non-exhaustive list of known copyleft-licensed Flutter/Dart packages.
+          KNOWN_COPYLEFT_PACKAGES = (
+              "ffmpeg_kit_flutter",
+              "ffmpeg_kit_flutter_new",
+              "flutter_ffmpeg",
+          )
+
+          if not os.path.isfile(PUBSPEC):
+              print("::error::%s not found" % PUBSPEC)
+              sys.exit(1)
+
+          header_re = re.compile(r"^([A-Za-z_][A-Za-z0-9_-]*):")
+          entry_re = re.compile(r"^(\s*)([A-Za-z_][A-Za-z0-9_-]*):(.*)$")
+
+          found = {s: [] for s in SECTIONS}
+          current = None
+          child_indent = None
+
+          with open(PUBSPEC, "r", encoding="utf-8") as fh:
+              for raw in fh:
+                  line = raw.rstrip("\r\n")
+                  if not line.strip() or line.lstrip().startswith("#"):
+                      continue
+                  if not line[0].isspace():
+                      m = header_re.match(line)
+                      current = m.group(1) if m else None
+                      child_indent = None
+                      continue
+                  if current not in SECTIONS:
+                      continue
+                  m = entry_re.match(line)
+                  if not m:
+                      continue
+                  indent = len(m.group(1))
+                  if child_indent is None:
+                      child_indent = indent
+                  if indent == child_indent:
+                      name = m.group(2)
+                      spec = re.sub(r"\s+#.*$", "", m.group(3)).strip()
+                      found[current].append((name, spec))
+
+          denied = []
+          for section in SECTIONS:
+              for name, spec in found[section]:
+                  blob = (name + " " + spec).lower()
+                  reason = None
+                  for kw in DENY_KEYWORDS:
+                      if kw in blob:
+                          reason = "deny keyword '%s'" % kw
+                          break
+                  if reason is None:
+                      for pkg in KNOWN_COPYLEFT_PACKAGES:
+                          if name == pkg or name.startswith(pkg + "_"):
+                              reason = "known copyleft package '%s'" % pkg
+                              break
+                  if reason is not None:
+                      denied.append((section, name, spec, reason))
+
+          deps = found["dependencies"]
+          devs = found["dev_dependencies"]
+          print("=" * 64)
+          print("Dependency summary from pubspec.yaml: %d dependencies, %d dev_dependencies" % (len(deps), len(devs)))
+          for name, spec in deps:
+              print("  [dependencies]      %s: %s" % (name, spec if spec else "(nested sdk/git/path spec)"))
+          for name, spec in devs:
+              print("  [dev_dependencies]  %s: %s" % (name, spec if spec else "(nested sdk/git/path spec)"))
+          print("=" * 64)
+
+          if denied:
+              for section, name, spec, reason in denied:
+                  print("::error::[%s] %s: %s -> %s" % (section, name, spec, reason))
+              print("License scan FAILED: potential copyleft (GPL/LGPL/AGPL/SSPL) dependency detected.")
+              sys.exit(1)
+
+          print("License scan PASSED: no GPL/LGPL/AGPL/SSPL keyword or known copyleft package matched.")
+          print("Note: static heuristic scan only - NOT legal advice.")
+          PY
+
+  build-android:
+    name: Build Android (release APK + AAB, obfuscated)
+    needs: [lint, test, license-scan]
+    if: ${{ github.event_name != 'workflow_call' || inputs.run-builds }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter (stable 3.27.4)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.27.4'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Application id: com.azstudio.railgo (android/app/build.gradle(.kts))
+      - name: Build release APK (obfuscated)
+        run: flutter build apk --release --obfuscate --split-debug-info=build/symbols
+
+      - name: Build release AAB (obfuscated)
+        run: flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
+
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+      - name: Upload release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload obfuscation symbols (for stack trace de-obfuscation)
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-symbols
+          path: build/symbols/
+          if-no-files-found: error
+
+  build-ios:
+    name: Build iOS (release, no codesign)
+    needs: [lint, test, license-scan]
+    if: ${{ github.event_name != 'workflow_call' || inputs.run-builds }}
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter (stable 3.27.4)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.27.4'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Unsigned release build (无签名产物，供侧载 sideloading 或企业重签
+      # enterprise re-signing)。Bundle id: com.azstudio.railgo
+      - name: Build iOS release (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned .app into zip
+        run: |
+          cd build/ios/iphoneos
+          zip -qry RailGo-iOS-unsigned-Release.zip Runner.app
+
+      - name: Upload unsigned iOS build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned-release
+          path: build/ios/iphoneos/RailGo-iOS-unsigned-Release.zip
+          if-no-files-found: error
+
+  # HarmonyOS 无官方 GitHub-hosted runner：构建需要 OpenHarmony Flutter SDK
+  # 与 DevEco Studio / hvigor 工具链，故本 job 仅为文档化占位（仅打印说明，
+  # continue-on-error 永不阻断 CI）。
+  #
+  # 指定工具链（工程已按其做双版本兼容，见 pubspec environment 注释）：
+  #   OpenHarmony Flutter SDK = CPF-Flutter/flutter_flutter @ 3.22.0-ohos
+  #   https://gitcode.com/CPF-Flutter/flutter_flutter/tree/3.22.0-ohos
+  #   （基线 Flutter 3.22.0 / Dart 3.4；本仓库 Dart 约束 >=3.4.0，且代码
+  #     禁用 3.27-only API 如 Color.withValues，保证同源代码可编译）
+  #
+  # self-hosted runner 接入步骤（安装 DevEco Studio + OpenHarmony SDK 后）：
+  #   git clone -b 3.22.0-ohos https://gitcode.com/CPF-Flutter/flutter_flutter.git ~/ohos-flutter
+  #   export PATH="$HOME/ohos-flutter/bin:$PATH"
+  #   flutter doctor && flutter pub get
+  #   flutter build hap --release   # app id: com.azstudio.railgo
+  # 配套插件适配如需：OpenHarmony-SIG/flutter_packages（本工程暂未依赖其分支替换）
+  build-harmony:
+    name: Build HarmonyOS (placeholder, continue-on-error)
+    if: ${{ github.event_name != 'workflow_call' || inputs.run-builds }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - name: Print HarmonyOS build status and community guidance
+        run: |
+          echo "HarmonyOS HAP 构建已迁移至独立 workflow：.github/workflows/harmony.yml"
+          echo "（三种模式：预检/云端 CLI 直链/自建 runner；工具链 CPF-Flutter 3.22.0-ohos）"
+          echo "HarmonyOS (OpenHarmony) build is NOT wired into main CI yet — see harmony.yml."
+          echo "原因: HarmonyOS 构建需要 OpenHarmony Flutter SDK 与 DevEco Studio / hvigor 环境,"
+          echo "而 GitHub Actions 没有官方 HarmonyOS runner, 因此本 job 仅为占位说明。"
+          echo ""
+          echo "Application id on all platforms: com.azstudio.railgo"
+          echo ""
+          echo "Community options to enable real builds:"
+          echo "  1. OpenHarmony-SIG/flutter_flutter (flutter ohos branch) - Flutter for OpenHarmony SDK"
+          echo "  2. OpenHarmony-SIG/flutter_packages - companion plugin ports"
+          echo "  3. openharmony-rs/setup-ohos-sdk action - install OHOS SDK on ubuntu runners"
+          echo "  4. self-hosted runner with DevEco Studio/CLI, then: flutter build hap --release"
+          echo ""
+          echo "This job only prints notes (continue-on-error) and never blocks CI."

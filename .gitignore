@@ -1,0 +1,67 @@
+# ============================================================
+# RailGo-Flutter 上传分流（哪些进仓库、哪些仅本地）
+# ============================================================
+
+# ===== Flutter / Dart 工程（上传） =====
+# lib/ test/ assets/ .github/ docs/ pubspec.yaml analysis_options.yaml
+# l10n.yaml README.md LICENSE.md 均上传
+
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter_plugins
+.flutter_plugins-dependencies
+*.iml
+.idea/
+.vscode/
+
+# ===== 测试与覆盖率 =====
+coverage/
+lcov.info
+
+# ===== 遗留 uni-app 工程（仅本地 Phase 4 对照参考，不上传） =====
+.hbuilderx/
+.iflow/
+api/
+components/
+harmony-configs/
+js_sdk/
+pages/
+scripts/
+uni_modules/
+unpackage/
+node_modules/
+harmonyos/
+railgo-db.json
+rg-others/
+API.md
+App.vue
+main.js
+manifest.json
+pages.json
+package.json
+package-lock.json
+pnpm-lock.yaml
+index.html
+uni.promisify.adaptor.js
+uni.scss
+LICENSE
+.gitattributes
+
+# static/ 整体不上传，但 pubspec 声明的字体资产例外（Flutter 构建需要）
+static/*
+!static/fonts/
+
+# ===== 本地分析证据与工具链（不上传） =====
+.analysis/
+.toolchain/
+
+# ===== 旧仓库历史封存（仅本地） =====
+.git-legacy/
+
+# ===== 杂项 =====
+*.log
+.DS_Store
+Thumbs.db

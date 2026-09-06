@@ -1,0 +1,66 @@
+name: railgo
+description: "RailGo 铁路行 - 现代化的专业铁路查询工具（Flutter 重构版）"
+publish_to: "none"
+version: 3.0.0+30000
+
+environment:
+  # 下限 3.4 对齐鸿蒙工具链 CPF-Flutter/flutter_flutter 3.22.0-ohos（Dart 3.4）；
+  # Android/iOS CI 使用 Flutter 3.27.4（Dart 3.6）。代码禁用 3.27-only API（如 Color.withValues）。
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  cupertino_icons: ^1.0.8
+
+  # 状态管理
+  flutter_riverpod: ^2.5.1
+
+  # 网络层（含限流/防抖/短请求体防护）
+  dio: ^5.7.0
+
+  # 本地存储：SQLite(内存兜底) / KV / 安全存储
+  sqflite: ^2.3.3
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.2
+  flutter_secure_storage: ^9.2.2
+
+  # 国密 SM4（纯 Dart 实现，pointycastle 为 MIT 许可）
+  pointycastle: ^3.9.1
+
+  # 生物识别（Passkey 门禁；降级 PIN/手势）
+  local_auth: ^2.3.0
+
+  # 传感器与定位（测速 + 兜底积分测速）
+  sensors_plus: ^6.1.0
+  geolocator: ^13.0.1
+
+  # 实时活动 / 通知兜底
+  flutter_local_notifications: ^17.2.3
+
+  # Markdown 文档页（兜底硬编码文本见 features/oobe）
+  flutter_markdown: ^0.7.4
+
+  # 时区（强制 Asia/Shanghai）
+  timezone: ^0.9.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/docs/
+  fonts:
+    - family: DIN1451
+      fonts:
+        - asset: static/fonts/din1451.ttf
+    - family: HMSans
+      fonts:
+        - asset: static/fonts/hmsans.ttf

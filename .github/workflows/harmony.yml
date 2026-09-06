@@ -1,0 +1,212 @@
+# ============================================================================
+# RailGo-Flutter — HarmonyOS HAP 构建
+#
+# 三种运行模式：
+#  A. 预检模式（默认）：未提供 command-line-tools 下载地址时，打印环境指引后
+#     成功退出（continue-on-error 期间不污染 CI 状态）。
+#  B. 云端构建：workflow_dispatch 输入 cli_url（或仓库 Variables/Secrets
+#     OHOS_CLI_URL）指向 commandline-tools-linux-x64-*.zip（DevEco CLI /
+#     OpenHarmony 命令行工具，可放内网镜像）。ubuntu-latest 即可真构建。
+#  C. 自建 runner：input runner 填自建标签（预装 DevEco/CLI + ohos flutter），
+#     跳过下载直接构建，最快。
+#
+# 工具链（已验证存在）：
+#   ohos Flutter = CPF-Flutter/flutter_flutter @ 3.22.0-ohos
+#                  https://gitcode.com/CPF-Flutter/flutter_flutter/tree/3.22.0-ohos
+#   （Flutter 3.22.0 / Dart 3.4 —— 本仓库 Dart 约束 >=3.4.0，代码已双版本兼容）
+#
+# 签名说明：
+#   - 默认产出 unsigned HAP（真机安装需用 DevEco/hiTool 重签）。
+#   - 配置 Secrets 后自动签名：OHOS_P12_B64 / OHOS_P12_PASS / OHOS_CER_B64 /
+#     OHOS_P7B_B64（AGC 申请的调试/发布证书，Base64）→ 注入
+#     harmony/build-profile.json5 signingConfigs（HarmonyOS NEXT 商用需 AGC，
+#     纯 OpenHarmony 可用社区调试证书）。
+# ============================================================================
+name: HarmonyOS HAP
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: 'Runner（自建鸿蒙 runner 填标签，如 harmonyos）'
+        required: false
+        default: 'ubuntu-latest'
+      ohos_flutter_ref:
+        description: 'ohos Flutter 分支/标签'
+        required: false
+        default: '3.22.0-ohos'
+      cli_url:
+        description: 'command-line-tools zip 直链（留空=预检模式）'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: harmony-hap-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-hap:
+    name: Build HAP (unsigned or signed)
+    runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
+    timeout-minutes: 60
+    continue-on-error: true # 社区工具链验证期：失败不阻断主干 CI
+    env:
+      OHOS_FLUTTER_REPO: https://gitcode.com/CPF-Flutter/flutter_flutter.git
+      OHOS_FLUTTER_REF: ${{ github.event.inputs.ohos_flutter_ref || '3.22.0-ohos' }}
+      CLI_URL: ${{ github.event.inputs.cli_url || vars.OHOS_CLI_URL || secrets.OHOS_CLI_URL || '' }}
+      DEVECO_SDK_HOME: ${{ github.workspace }}/../ohos-env/commandline-tools/sdk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (hvigor)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Resolve toolchain mode
+        id: mode
+        run: |
+          if [ -n "$CLI_URL" ]; then
+            echo "mode=cloud" >> "$GITHUB_OUTPUT"
+            echo "云端构建：CLI 来自 $CLI_URL"
+          elif [ "${{ github.event.inputs.runner || 'ubuntu-latest' }}" != "ubuntu-latest" ]; then
+            echo "mode=selfhosted" >> "$GITHUB_OUTPUT"
+            echo "自建 runner 模式：假定已预装 ohos flutter + CLI 工具"
+          else
+            echo "mode=precheck" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Precheck mode — print setup guidance and exit OK
+        if: steps.mode.outputs.mode == 'precheck'
+        run: |
+          echo "==> HAP 构建未接入（缺少 command-line-tools 下载源）。两种接入方式："
+          echo "  1) 云端：仓库 Settings → Variables/Secrets 配置 OHOS_CLI_URL 指向"
+          echo "     commandline-tools-linux-x64-*.zip（DevEco CLI 官方下载需登录，"
+          echo "     建议放内网/对象存储镜像），然后手动触发本 workflow。"
+          echo "  2) 自建 runner：预装 DevEco CLI + OpenHarmony SDK + ohos flutter，"
+          echo "     打标签 harmonyos，手动触发时 input runner=harmonyos。"
+          echo "工具链：CPF-Flutter/flutter_flutter @ $OHOS_FLUTTER_REF"
+          echo "代码兼容：Dart >=3.4.0（pubspec），无 3.27-only API。"
+
+      # ───────────────── 模式 B/C：真实构建 ─────────────────
+
+      - name: Cache command-line-tools
+        if: steps.mode.outputs.mode == 'cloud'
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/../ohos-env/commandline-tools
+          key: ohos-cli-${{ env.CLI_URL }}
+
+      - name: Download and install command-line-tools
+        if: steps.mode.outputs.mode == 'cloud'
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/../ohos-env" && cd "$GITHUB_WORKSPACE/../ohos-env"
+          if [ ! -d commandline-tools/sdk ]; then
+            curl -fL --retry 3 -o cli.zip "$CLI_URL"
+            unzip -q cli.zip -d unpacked
+            mv unpacked/commandline-tools commandline-tools
+          fi
+          echo "$GITHUB_WORKSPACE/../ohos-env/commandline-tools/bin" >> "$GITHUB_PATH"
+          echo "$GITHUB_WORKSPACE/../ohos-env/commandline-tools/tool/node/bin" >> "$GITHUB_PATH" || true
+
+      - name: Locate ohos flutter (self-hosted mode)
+        if: steps.mode.outputs.mode == 'selfhosted'
+        run: |
+          if command -v flutter >/dev/null && flutter --version 2>/dev/null | grep -qi ohos; then
+            echo "使用 runner 预装 ohos flutter"
+          else
+            echo "::warning::runner 未预装 ohos flutter，尝试在线拉取（慢）"
+            git clone --depth 1 -b "$OHOS_FLUTTER_REF" "$OHOS_FLUTTER_REPO" "$HOME/ohos-flutter"
+            echo "$HOME/ohos-flutter/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: Cache ohos flutter fork (cloud mode)
+        if: steps.mode.outputs.mode == 'cloud'
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/../ohos-env/ohos-flutter
+          key: ohos-flutter-${{ env.OHOS_FLUTTER_REF }}
+
+      - name: Install ohos flutter fork (cloud mode)
+        if: steps.mode.outputs.mode == 'cloud'
+        run: |
+          if [ ! -d "$GITHUB_WORKSPACE/../ohos-env/ohos-flutter/bin" ]; then
+            git clone --depth 1 -b "$OHOS_FLUTTER_REF" "$OHOS_FLUTTER_REPO" "$GITHUB_WORKSPACE/../ohos-env/ohos-flutter"
+          fi
+          echo "$GITHUB_WORKSPACE/../ohos-env/ohos-flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Generate harmony/ platform dir (idempotent)
+        if: steps.mode.outputs.mode != 'precheck'
+        run: |
+          export PATH="$GITHUB_WORKSPACE/../ohos-env/ohos-flutter/bin:$HOME/ohos-flutter/bin:$PATH"
+          flutter config --no-analytics || true
+          flutter create --platforms ohos --org com.azstudio --project-name railgo . || {
+            echo "::error::flutter create --platforms ohos 失败（确认使用的是 ohos 分支而非官方 flutter）"; exit 1; }
+
+      - name: Install Dart dependencies
+        if: steps.mode.outputs.mode != 'precheck'
+        run: flutter pub get
+
+      - name: Inject signing configs from secrets (optional)
+        if: steps.mode.outputs.mode != 'precheck'
+        env:
+          OHOS_P12_B64: ${{ secrets.OHOS_P12_B64 }}
+          OHOS_P12_PASS: ${{ secrets.OHOS_P12_PASS }}
+          OHOS_CER_B64: ${{ secrets.OHOS_CER_B64 }}
+          OHOS_P7B_B64: ${{ secrets.OHOS_P7B_B64 }}
+        run: |
+          node - <<'JS'
+          const fs = require("fs");
+          const path = "harmony/build-profile.json5";
+          if (!fs.existsSync(path)) { console.log("harmony/build-profile.json5 不存在，跳过签名注入"); process.exit(0); }
+          // build-profile.json5 为 JSON5：仅当可整体解析时改写，否则提示人工配置
+          let raw = fs.readFileSync(path, "utf8");
+          const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+          let json;
+          try { json = JSON.parse(strip(raw)); } catch (e) { console.log("::warning::build-profile.json5 解析失败（JSON5），请人工配置 signingConfigs"); process.exit(0); }
+          const b64 = (name) => process.env[name] ? Buffer.from(process.env[name], "base64") : null;
+          const p12 = b64("OHOS_P12_B64"), cer = b64("OHOS_CER_B64"), p7b = b64("OHOS_P7B_B64");
+          if (!p12) { console.log("未配置 OHOS_P12_B64，跳过签名注入（产出 unsigned HAP）"); process.exit(0); }
+          fs.mkdirSync("harmony/sign", { recursive: true });
+          fs.writeFileSync("harmony/sign/railgo.p12", p12);
+          if (cer) fs.writeFileSync("harmony/sign/railgo.cer", cer);
+          if (p7b) fs.writeFileSync("harmony/sign/railgoProfile.p7b", p7b);
+          json.app = json.app || {};
+          json.app.signingConfigs = [{
+            name: "release", type: "HarmonyOS", material: {
+              certpath: cer ? "sign/railgo.cer" : "", storeFile: p12 ? "sign/railgo.p12" : "",
+              keyAlias: "railgo", profile: p7b ? "sign/railgoProfile.p7b" : "",
+              signAlg: "SHA256withECDSA", storePassword: process.env.OHOS_P12_PASS || "", keyPassword: process.env.OHOS_P12_PASS || ""
+            }
+          }];
+          fs.writeFileSync(path, JSON.stringify(json, null, 2));
+          console.log("签名配置已注入（密钥文件未入库，仅 CI 工作区）");
+          JS
+
+      - name: Build HAP (release)
+        if: steps.mode.outputs.mode != 'precheck'
+        run: |
+          flutter build hap --release || {
+            echo "::warning::release 签名缺失时部分工具链要求 debug 产物，回退 --debug"; flutter build hap --debug; }
+
+      - name: Collect HAP artifacts
+        if: steps.mode.outputs.mode != 'precheck'
+        run: |
+          mkdir -p dist && find build -name "*.hap" -exec cp {} dist/ \; 2>/dev/null || true
+          ls -la dist || true
+
+      - name: Upload HAP
+        if: steps.mode.outputs.mode != 'precheck'
+        uses: actions/upload-artifact@v4
+        with:
+          name: railgo-hap-${{ github.sha }}
+          path: dist/*.hap
+          if-no-files-found: warn
