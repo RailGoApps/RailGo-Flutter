@@ -8,7 +8,8 @@ TripTimetable g1Like() => const TripTimetable(
       trainNum: 'G1',
       stops: [
         TripStop(station: '北京南', telecode: 'VNP', depart: '06:30'),
-        TripStop(station: '沧州西', telecode: 'CBP', arrive: '07:18', depart: '07:20'),
+        TripStop(
+            station: '沧州西', telecode: 'CBP', arrive: '07:18', depart: '07:20'),
         TripStop(station: '上海虹桥', telecode: 'AOH', arrive: '11:24'),
       ],
     );
@@ -20,7 +21,9 @@ void main() {
   group('数据合法性', () {
     test('少于 2 站 → finished(invalid_timetable)', () {
       final s = machine.evaluate(
-        timetable: const TripTimetable(trainNum: 'X', stops: [TripStop(station: 'A', telecode: 'AAA', depart: '08:00')]),
+        timetable: const TripTimetable(
+            trainNum: 'X',
+            stops: [TripStop(station: 'A', telecode: 'AAA', depart: '08:00')]),
         nowMinutes: 0,
       );
       expect(s.phase, TripPhase.finished);
@@ -46,10 +49,12 @@ void main() {
       expect(s.nextChangeAtMinutes, 270);
     });
     test('恰为发车前 2h → departingSoon（边界含）', () {
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 270).phase, TripPhase.departingSoon);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 270).phase,
+          TripPhase.departingSoon);
     });
     test('发车前 1 分钟 → departingSoon', () {
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 389).phase, TripPhase.departingSoon);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 389).phase,
+          TripPhase.departingSoon);
     });
     test('发车时刻 → 进入运行 nextStation', () {
       final s = machine.evaluate(timetable: g1Like(), nowMinutes: 390);
@@ -62,14 +67,18 @@ void main() {
       expect(s.nextChangeAtMinutes, 423);
     });
     test('距到站 15 分钟（边界）→ arrivingSoon', () {
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 423).phase, TripPhase.arrivingSoon);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 423).phase,
+          TripPhase.arrivingSoon);
     });
     test('到站前 1 分钟 → arrivingSoon', () {
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 437).phase, TripPhase.arrivingSoon);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 437).phase,
+          TripPhase.arrivingSoon);
     });
     test('到站时刻 → stopped（区间 [438,440]）', () {
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 438).phase, TripPhase.stopped);
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 440).phase, TripPhase.stopped);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 438).phase,
+          TripPhase.stopped);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 440).phase,
+          TripPhase.stopped);
     });
     test('出发后 → 重新进入 nextStation（下一区间）', () {
       final s = machine.evaluate(timetable: g1Like(), nowMinutes: 441);
@@ -77,8 +86,10 @@ void main() {
       expect(s.nextStopIndex, 2);
     });
     test('终到站到达 → finished', () {
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 684).phase, TripPhase.finished);
-      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 700).phase, TripPhase.finished);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 684).phase,
+          TripPhase.finished);
+      expect(machine.evaluate(timetable: g1Like(), nowMinutes: 700).phase,
+          TripPhase.finished);
     });
   });
 
@@ -87,8 +98,14 @@ void main() {
       trainNum: 'Z98',
       stops: [
         TripStop(station: 'A', telecode: 'AAA', depart: '22:00'),
-        TripStop(station: 'B', telecode: 'BBB', arrive: '23:30', depart: '23:50'),
-        TripStop(station: 'C', telecode: 'CCC', arrive: '01:10', depart: '01:12', day: 1),
+        TripStop(
+            station: 'B', telecode: 'BBB', arrive: '23:30', depart: '23:50'),
+        TripStop(
+            station: 'C',
+            telecode: 'CCC',
+            arrive: '01:10',
+            depart: '01:12',
+            day: 1),
         TripStop(station: 'D', telecode: 'DDD', arrive: '03:00', day: 1),
       ],
     );
@@ -99,10 +116,12 @@ void main() {
       expect(s.nextStopIndex, 2);
     });
     test('次日临近到达 → arrivingSoon', () {
-      expect(machine.evaluate(timetable: night, nowMinutes: 1500).phase, TripPhase.arrivingSoon);
+      expect(machine.evaluate(timetable: night, nowMinutes: 1500).phase,
+          TripPhase.arrivingSoon);
     });
     test('终到（次日 03:00=1620）→ finished', () {
-      expect(machine.evaluate(timetable: night, nowMinutes: 1620).phase, TripPhase.finished);
+      expect(machine.evaluate(timetable: night, nowMinutes: 1620).phase,
+          TripPhase.finished);
     });
   });
 

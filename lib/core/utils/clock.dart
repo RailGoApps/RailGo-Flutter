@@ -24,7 +24,10 @@ class SystemClock implements AppClock {
 enum ClockEvent { reanchored }
 
 class TrustworthyClock implements AppClock {
-  TrustworthyClock({AppClock? wallClock, this.driftTolerance = const Duration(seconds: 90), DateTime? initial})
+  TrustworthyClock(
+      {AppClock? wallClock,
+      this.driftTolerance = const Duration(seconds: 90),
+      DateTime? initial})
       : _wall = wallClock ?? const SystemClock() {
     _anchorWall = initial ?? _wall.now();
     _mono = Stopwatch()..start();
@@ -36,7 +39,8 @@ class TrustworthyClock implements AppClock {
   late Stopwatch _mono;
 
   /// 检测到时间跳变时广播（UI 提示 / 日志）
-  final StreamController<ClockEvent> _events = StreamController<ClockEvent>.broadcast();
+  final StreamController<ClockEvent> _events =
+      StreamController<ClockEvent>.broadcast();
   Stream<ClockEvent> get events => _events.stream;
 
   /// 是否发生过重新锚定（红队审查点：状态机不得因时间篡改死循环）

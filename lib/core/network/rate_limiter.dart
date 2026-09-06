@@ -55,7 +55,9 @@ class TokenBucket {
 }
 
 class ConcurrencyGate {
-  ConcurrencyGate(this.maxConcurrent) : _active = 0, _queue = [];
+  ConcurrencyGate(this.maxConcurrent)
+      : _active = 0,
+        _queue = [];
 
   final int maxConcurrent;
   int _active;

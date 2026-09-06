@@ -31,8 +31,12 @@ class CertificatesPage extends StatelessWidget {
           decoration: const InputDecoration(counterText: ''),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('验证')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('取消')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('验证')),
         ],
       ),
     );
@@ -66,7 +70,8 @@ class CertificatesPage extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text('🔒 验证未通过或数据损坏：${snap.error}',
-                    textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red)),
               ),
             );
           }
@@ -83,7 +88,8 @@ class CertificatesPage extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.badge_outlined),
                   title: Text('${c.name}（${_typeLabel(c.type)}）'),
-                  subtitle: Text(_mask(c.number), style: const TextStyle(letterSpacing: 2)),
+                  subtitle: Text(_mask(c.number),
+                      style: const TextStyle(letterSpacing: 2)),
                   trailing: const Icon(Icons.chevron_right),
                 ),
               );
@@ -100,7 +106,9 @@ class CertificatesPage extends StatelessWidget {
 
   String _mask(String number) {
     if (number.length <= 6) return '******';
-    return number.substring(0, 3) + ' * ' * (number.length - 6) + number.substring(number.length - 3);
+    return number.substring(0, 3) +
+        ' * ' * (number.length - 6) +
+        number.substring(number.length - 3);
   }
 
   String _typeLabel(CertType t) => switch (t) {
@@ -122,7 +130,9 @@ class CertificatesPage extends StatelessWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setSheet) => Padding(
           padding: EdgeInsets.only(
-            left: 16, right: 16, top: 16,
+            left: 16,
+            right: 16,
+            top: 16,
             bottom: MediaQuery.of(context).viewInsets.bottom + 16,
           ),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -135,9 +145,16 @@ class CertificatesPage extends StatelessWidget {
               ],
               onChanged: (v) => setSheet(() => type = v ?? type),
             ),
-            TextField(controller: name, decoration: const InputDecoration(labelText: '姓名（必填）')),
-            TextField(controller: number, decoration: const InputDecoration(labelText: '证件号码（必填）')),
-            TextField(controller: birth, decoration: const InputDecoration(labelText: '出生日期 yyyymmdd（必填）')),
+            TextField(
+                controller: name,
+                decoration: const InputDecoration(labelText: '姓名（必填）')),
+            TextField(
+                controller: number,
+                decoration: const InputDecoration(labelText: '证件号码（必填）')),
+            TextField(
+                controller: birth,
+                decoration:
+                    const InputDecoration(labelText: '出生日期 yyyymmdd（必填）')),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
@@ -148,9 +165,12 @@ class CertificatesPage extends StatelessWidget {
       ),
     );
     if (ok == true) {
-      if (name.text.isEmpty || number.text.isEmpty || !RegExp(r'^\d{8}$').hasMatch(birth.text)) {
+      if (name.text.isEmpty ||
+          number.text.isEmpty ||
+          !RegExp(r'^\d{8}$').hasMatch(birth.text)) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('必填字段不完整')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('必填字段不完整')));
         }
         return;
       }
@@ -163,11 +183,13 @@ class CertificatesPage extends StatelessWidget {
           birthDate: birth.text,
         ));
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已加密保存')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('已加密保存')));
         }
       } on GateDeniedException {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('🔒 验证未通过，未保存')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('🔒 验证未通过，未保存')));
         }
       }
     }

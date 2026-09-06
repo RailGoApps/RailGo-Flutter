@@ -67,7 +67,9 @@ List<String> buildTrainPreselectSql(String keyword) {
       "SELECT code, numberFull, timetable FROM trains WHERE numberFull LIKE '%\"_$esc\"%' OR numberFull LIKE '%\"$esc\"%'",
     ];
   }
-  return ["SELECT code, numberFull, timetable FROM trains WHERE numberFull LIKE '%$esc%'"];
+  return [
+    "SELECT code, numberFull, timetable FROM trains WHERE numberFull LIKE '%$esc%'"
+  ];
 }
 
 abstract class OfflineDb {
@@ -129,7 +131,8 @@ class SqliteOfflineDb implements OfflineDb {
 TripTimetableRow? timetableFromRawRow(Map<String, Object?> row) {
   final timetable = TrainRow.fromMap(row).timetable;
   if (timetable.isEmpty) return null;
-  final stops = <({String station, String telecode, String? arrive, String? depart})>[];
+  final stops =
+      <({String station, String telecode, String? arrive, String? depart})>[];
   for (final s in timetable) {
     if (s is! Map) continue;
     stops.add((
@@ -140,11 +143,15 @@ TripTimetableRow? timetableFromRawRow(Map<String, Object?> row) {
     ));
   }
   if (stops.length < 2) return null;
-  return TripTimetableRow(stops: stops, numberFull: TrainRow.fromMap(row).numberFull.cast<String>());
+  return TripTimetableRow(
+      stops: stops,
+      numberFull: TrainRow.fromMap(row).numberFull.cast<String>());
 }
 
 class TripTimetableRow {
   const TripTimetableRow({required this.stops, required this.numberFull});
-  final List<({String station, String telecode, String? arrive, String? depart})> stops;
+  final List<
+          ({String station, String telecode, String? arrive, String? depart})>
+      stops;
   final List<String> numberFull;
 }

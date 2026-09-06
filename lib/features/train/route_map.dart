@@ -28,7 +28,8 @@ class RouteLineMapView extends StatelessWidget {
         child: InteractiveViewer(
           maxScale: 6,
           child: CustomPaint(
-            painter: _RouteLinePainter(data: data, primary: cs.primary, onPrimary: cs.onPrimary),
+            painter: _RouteLinePainter(
+                data: data, primary: cs.primary, onPrimary: cs.onPrimary),
             size: Size.infinite,
           ),
         ),
@@ -38,7 +39,8 @@ class RouteLineMapView extends StatelessWidget {
 }
 
 class _RouteLinePainter extends CustomPainter {
-  _RouteLinePainter({required this.data, required this.primary, required this.onPrimary});
+  _RouteLinePainter(
+      {required this.data, required this.primary, required this.onPrimary});
   final MapLineData data;
   final Color primary;
   final Color onPrimary;
@@ -47,7 +49,8 @@ class _RouteLinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final b = mapLineBounds(data);
     Offset p(double lng, double lat) {
-      final (nx, ny) = projectNormalized(lng, lat, b.minLng, b.maxLng, b.minLat, b.maxLat);
+      final (nx, ny) =
+          projectNormalized(lng, lat, b.minLng, b.maxLng, b.minLat, b.maxLat);
       return Offset(nx * size.width, ny * size.height);
     }
 
@@ -76,7 +79,10 @@ class _RouteLinePainter extends CustomPainter {
 
     // 站点标记
     final dotPaint = Paint()..color = primary;
-    final dotBorder = Paint()..color = onPrimary..style = PaintingStyle.stroke..strokeWidth = 2;
+    final dotBorder = Paint()
+      ..color = onPrimary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
     final tp = TextPainter(textDirection: TextDirection.ltr);
     for (final s in data.stations) {
       final o = p(s.lng, s.lat);
@@ -84,7 +90,8 @@ class _RouteLinePainter extends CustomPainter {
       canvas.drawCircle(o, 5, dotBorder);
       tp.text = TextSpan(
         text: s.name,
-        style: TextStyle(fontSize: 10, color: primary, fontWeight: FontWeight.w600),
+        style: TextStyle(
+            fontSize: 10, color: primary, fontWeight: FontWeight.w600),
       );
       tp.layout();
       tp.paint(canvas, o + Offset(7, -tp.height / 2));

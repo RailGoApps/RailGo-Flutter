@@ -29,9 +29,13 @@ class AuthService {
 
   bool get isAuthed => _prefs?.getBool(_kJqok) ?? false;
 
-  Future<AuthCheckResult> check({required String version, required String userid, required String key}) async {
+  Future<AuthCheckResult> check(
+      {required String version,
+      required String userid,
+      required String key}) async {
     try {
-      final resp = await _api.checkAuth(version: version, userid: userid, key: key);
+      final resp =
+          await _api.checkAuth(version: version, userid: userid, key: key);
       final data = resp.data;
       final valid = data != null && data['valid'] == true;
       if (valid) {

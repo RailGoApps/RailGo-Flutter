@@ -62,10 +62,13 @@ class TransferAdvice {
 
   final TransferType type;
   final int gapMinutes;
+
   /// 非空表示需要向用户示警的紧迫提示
   final String? warning;
+
   /// 常规提示（如同车接续的换座确认）
   final String? message;
+
   /// 应弹出 message 的时刻（绝对分钟；同车接续 = 到站前 10min）
   final int? promptAtAbsMinutes;
 }
@@ -86,10 +89,14 @@ TransferAdvice evaluateTransfer(
 }) {
   final gap = next.departAbsMinutes - prev.arriveAbsMinutes;
   if (gap > maxTransferHours * 60) {
-    return TransferAdvice(type: TransferType.none, gapMinutes: gap, message: '换乘间隔过长，已断开接续，视为独立行程');
+    return TransferAdvice(
+        type: TransferType.none,
+        gapMinutes: gap,
+        message: '换乘间隔过长，已断开接续，视为独立行程');
   }
   if (gap < 0) {
-    return const TransferAdvice(type: TransferType.none, gapMinutes: -1, message: '行程时间重叠，不构成接续');
+    return const TransferAdvice(
+        type: TransferType.none, gapMinutes: -1, message: '行程时间重叠，不构成接续');
   }
 
   final sameStation = prev.arrivalStation == next.departureStation;
@@ -120,7 +127,8 @@ TransferAdvice evaluateTransfer(
     return TransferAdvice(
       type: TransferType.sameCity,
       gapMinutes: gap,
-      warning: gap < kSameCityTightMinutes ? '异站换乘 请快速通行 为安检 检票留足大于15分钟时间' : null,
+      warning:
+          gap < kSameCityTightMinutes ? '异站换乘 请快速通行 为安检 检票留足大于15分钟时间' : null,
     );
   }
   return TransferAdvice(type: TransferType.plainConnection, gapMinutes: gap);

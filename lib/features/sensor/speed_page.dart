@@ -35,7 +35,9 @@ class _SpeedPageState extends State<SpeedPage> {
   }
 
   void _startAccelerometer() {
-    _accelSub = accelerometerEventStream(samplingPeriod: const Duration(milliseconds: 20)).listen((event) {
+    _accelSub = accelerometerEventStream(
+            samplingPeriod: const Duration(milliseconds: 20))
+        .listen((event) {
       final sample = _estimator.feed(event);
       if (mounted) setState(() => _assistSample = sample);
     }, onError: (Object _) {
@@ -50,7 +52,8 @@ class _SpeedPageState extends State<SpeedPage> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
         return;
       }
     } catch (_) {
@@ -60,7 +63,8 @@ class _SpeedPageState extends State<SpeedPage> {
       try {
         final pos = await Geolocator.getCurrentPosition(
           locationSettings: LocationSettings(
-            accuracy: _highAccuracy ? LocationAccuracy.best : LocationAccuracy.low,
+            accuracy:
+                _highAccuracy ? LocationAccuracy.best : LocationAccuracy.low,
           ),
         );
         if (mounted) setState(() => _lastPosition = pos);
@@ -71,7 +75,8 @@ class _SpeedPageState extends State<SpeedPage> {
   }
 
   bool get _gpsSpeedAvailable =>
-      _lastPosition != null && ( _lastPosition!.speed > 0 || _lastPosition!.accuracy < 100);
+      _lastPosition != null &&
+      (_lastPosition!.speed > 0 || _lastPosition!.accuracy < 100);
 
   @override
   void dispose() {
@@ -82,11 +87,10 @@ class _SpeedPageState extends State<SpeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final assistActive =
-        AccelerometerSpeedEstimator.shouldFallback(
-              locationAvailable: _lastPosition != null,
-              hasSpeed: _gpsSpeedAvailable,
-            ) &&
+    final assistActive = AccelerometerSpeedEstimator.shouldFallback(
+          locationAvailable: _lastPosition != null,
+          hasSpeed: _gpsSpeedAvailable,
+        ) &&
         _assistSample != null;
     final kmh = _gpsSpeedAvailable
         ? (_lastPosition!.speed * 3.6).round()
@@ -108,14 +112,19 @@ class _SpeedPageState extends State<SpeedPage> {
                         const Padding(
                           padding: EdgeInsets.all(8),
                           child: Chip(
-                            avatar: Icon(Icons.satellite_alt_outlined, size: 16),
-                            label: Text('卫星信号弱', style: TextStyle(fontSize: 11)),
+                            avatar:
+                                Icon(Icons.satellite_alt_outlined, size: 16),
+                            label:
+                                Text('卫星信号弱', style: TextStyle(fontSize: 11)),
                             visualDensity: VisualDensity.compact,
                           ),
                         ),
                       Center(
                         child: Text('$kmh',
-                            style: const TextStyle(fontSize: 72, fontWeight: FontWeight.w800, fontFamily: 'DIN1451')),
+                            style: const TextStyle(
+                                fontSize: 72,
+                                fontWeight: FontWeight.w800,
+                                fontFamily: 'DIN1451')),
                       ),
                     ],
                   ),
@@ -128,13 +137,16 @@ class _SpeedPageState extends State<SpeedPage> {
             ),
           ),
           if (assistActive && _assistSample != null) ...[
-            Text(formatSpeedWithBand(_assistSample!), textAlign: TextAlign.center),
+            Text(formatSpeedWithBand(_assistSample!),
+                textAlign: TextAlign.center),
             const SizedBox(height: 4),
             const Text('传感器辅助模式：加速度积分估算，仅供参考',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.black45)),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black45)),
           ] else
             const Text('定位服务由系统提供，测速信息仅供参考',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.black45)),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black45)),
           const SizedBox(height: 12),
           SwitchListTile(
             title: const Text('高精度定位'),
@@ -155,7 +167,10 @@ class _SpeedPageState extends State<SpeedPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(k, style: const TextStyle(color: Colors.black54)), Text(v)],
+          children: [
+            Text(k, style: const TextStyle(color: Colors.black54)),
+            Text(v)
+          ],
         ),
       );
 }

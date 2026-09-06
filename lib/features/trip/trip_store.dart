@@ -45,7 +45,11 @@ class StoredTrip {
                 })
             .toList(),
         if (seat != null)
-          'seat': {'carNo': seat!.carNo, 'seatNo': seat!.seatNo, 'class': seat!.seatClass.name},
+          'seat': {
+            'carNo': seat!.carNo,
+            'seatNo': seat!.seatNo,
+            'class': seat!.seatClass.name
+          },
       };
 
   static StoredTrip fromJson(Map<String, dynamic> j) => StoredTrip(
@@ -73,7 +77,8 @@ class StoredTrip {
               ),
       );
 
-  TripTimetable get asTimetable => TripTimetable(trainNum: trainNum, stops: stops);
+  TripTimetable get asTimetable =>
+      TripTimetable(trainNum: trainNum, stops: stops);
 }
 
 abstract class TripStorage {
@@ -92,7 +97,9 @@ class PrefsTripStorage implements TripStorage {
     if (raw == null || raw.isEmpty) return const [];
     try {
       final list = jsonDecode(raw) as List<dynamic>;
-      return list.map((e) => StoredTrip.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => StoredTrip.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return const []; // 损坏 → 空（容灾，勿崩）
     }
@@ -136,7 +143,8 @@ class TripRepository {
   /// 当前分钟数（相对各行程发车日零点；按上海时区计算今天零点经过的分钟 + 跨日偏移）
   int nowMinutesSince(String dateYmd) {
     final now = clock.now();
-    final sh = DateTime(now.toUtc().add(kShanghaiOffset).year, //
+    final sh = DateTime(
+        now.toUtc().add(kShanghaiOffset).year, //
         now.toUtc().add(kShanghaiOffset).month,
         now.toUtc().add(kShanghaiOffset).day);
     final y = int.parse(dateYmd.substring(0, 4));
@@ -150,7 +158,8 @@ class TripRepository {
   }
 
   Future<List<TripWithStatus>> loadTripBoard() async {
-    final trips = (await storage.loadAll())..sort((a, b) => a.dateYmd.compareTo(b.dateYmd));
+    final trips = (await storage.loadAll())
+      ..sort((a, b) => a.dateYmd.compareTo(b.dateYmd));
     final out = <TripWithStatus>[];
     for (var i = 0; i < trips.length; i++) {
       final t = trips[i];
@@ -161,12 +170,15 @@ class TripRepository {
       TransferAdvice? advice;
       if (i + 1 < trips.length) {
         final next = trips[i + 1];
-        final prevLast = t.stops.lastWhere((s) => s.arrive != null, orElse: () => t.stops.last);
+        final prevLast = t.stops
+            .lastWhere((s) => s.arrive != null, orElse: () => t.stops.last);
         final nextFirst = next.stops.first;
-        final prevArrive = absoluteMinutes(day: prevLast.day, hhmm: prevLast.arrive);
+        final prevArrive =
+            absoluteMinutes(day: prevLast.day, hhmm: prevLast.arrive);
         // 关键：后程发车时刻须叠加两行程发车日的天数差，否则跨日接续会漏加 1440×N
         final dateDeltaDays = _daysBetween(t.dateYmd, next.dateYmd);
-        final nextDepart = absoluteMinutes(day: dateDeltaDays, hhmm: nextFirst.depart);
+        final nextDepart =
+            absoluteMinutes(day: dateDeltaDays, hhmm: nextFirst.depart);
         if (prevArrive != null && nextDepart != null) {
           advice = evaluateTransfer(
             TripLeg(

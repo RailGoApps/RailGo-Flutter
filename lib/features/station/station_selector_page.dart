@@ -20,7 +20,11 @@ class StationPickResult {
 }
 
 class _StationItem {
-  const _StationItem({required this.name, required this.telecode, this.pinyinTriple = '', this.types = const []});
+  const _StationItem(
+      {required this.name,
+      required this.telecode,
+      this.pinyinTriple = '',
+      this.types = const []});
   final String name;
   final String telecode;
   final String pinyinTriple;
@@ -90,7 +94,8 @@ class _StationSelectorPageState extends State<StationSelectorPage> {
                   name: (m['name'] ?? '') as String,
                   telecode: (m['telecode'] ?? '') as String,
                   pinyinTriple: (m['pinyinTriple'] ?? '') as String,
-                  types: ((m['type'] as List<dynamic>?) ?? const []).cast<String>(),
+                  types: ((m['type'] as List<dynamic>?) ?? const [])
+                      .cast<String>(),
                 ))
             .toList();
         setState(() => _items = data);
@@ -141,20 +146,27 @@ class _StationSelectorPageState extends State<StationSelectorPage> {
                 final item = _items[i];
                 return ListTile(
                   title: Text('${item.name}站'),
-                  subtitle: Text('${item.pinyinTriple}/-${item.telecode}', style: const TextStyle(fontSize: 12)),
+                  subtitle: Text('${item.pinyinTriple}/-${item.telecode}',
+                      style: const TextStyle(fontSize: 12)),
                   trailing: Wrap(
                     spacing: 4,
                     children: [
                       for (final t in item.types)
                         if (badgeFlag.containsKey(t))
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: badgeFlag[t], borderRadius: BorderRadius.circular(4)),
-                            child: Text(t, style: const TextStyle(color: Colors.white, fontSize: 11)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: badgeFlag[t],
+                                borderRadius: BorderRadius.circular(4)),
+                            child: Text(t,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 11)),
                           ),
                     ],
                   ),
-                  onTap: () => Navigator.of(context).pop(StationPickResult(name: item.name, telecode: item.telecode)),
+                  onTap: () => Navigator.of(context).pop(StationPickResult(
+                      name: item.name, telecode: item.telecode)),
                 );
               },
             ),

@@ -77,11 +77,17 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('404', style: TextStyle(fontSize: 56, fontWeight: FontWeight.w800, color: Color(0xFF114598))),
+                  const Text('404',
+                      style: TextStyle(
+                          fontSize: 56,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF114598))),
                   const Text('车次不存在或当日不开行'),
                   const SizedBox(height: 16),
                   OutlinedButton(
-                    onPressed: () => setState(() => _future = _repo().fetchOnline(trainNum: widget.keyword, date: widget.date)),
+                    onPressed: () => setState(() => _future = _repo()
+                        .fetchOnline(
+                            trainNum: widget.keyword, date: widget.date)),
                     child: const Text('重试'),
                   ),
                 ],
@@ -100,10 +106,17 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        Text(d.trainNum, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
+                        Text(d.trainNum,
+                            style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white)),
                         const Spacer(),
                         if (d.v1ComplementFailed)
-                          const Tooltip(message: '交路补全失败（不影响主数据）', child: Icon(Icons.warning_amber_rounded, color: Colors.amberAccent)),
+                          const Tooltip(
+                              message: '交路补全失败（不影响主数据）',
+                              child: Icon(Icons.warning_amber_rounded,
+                                  color: Colors.amberAccent)),
                       ]),
                       const SizedBox(height: 4),
                       Text('${d.bureauShortName} · ${d.car} · ${d.runner}',
@@ -114,21 +127,28 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
               ),
               const SizedBox(height: 8),
               Row(children: [
-                Expanded(child: FilledButton.tonalIcon(
+                Expanded(
+                    child: FilledButton.tonalIcon(
                   icon: const Icon(Icons.image_outlined),
                   label: const Text('车厢图'),
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (_) => CoachPicPage(api: ref.read(railGoApiProvider), trainNum: d.trainNum, carModel: d.car),
+                  onPressed: () =>
+                      Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => CoachPicPage(
+                        api: ref.read(railGoApiProvider),
+                        trainNum: d.trainNum,
+                        carModel: d.car),
                   )),
                 )),
                 const SizedBox(width: 8),
-                Expanded(child: FilledButton.tonalIcon(
+                Expanded(
+                    child: FilledButton.tonalIcon(
                   icon: const Icon(Icons.route_outlined),
                   label: const Text('线路点'),
                   onPressed: () => _showMapLine(d),
                 )),
                 const SizedBox(width: 8),
-                Expanded(child: FilledButton.icon(
+                Expanded(
+                    child: FilledButton.icon(
                   onPressed: _added ? null : () => _addToTrips(d),
                   icon: Icon(_added ? Icons.check : Icons.add),
                   label: Text(_added ? '已加入' : '加入旅途'),
@@ -146,20 +166,33 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(s.arrive == '-' ? '--' : s.arrive, style: const TextStyle(fontSize: 12, fontFamily: 'DIN1451')),
-                              Text(s.depart == '-' ? '--' : s.depart, style: const TextStyle(fontSize: 12, fontFamily: 'DIN1451', color: Color(0xFF114598))),
+                              Text(s.arrive == '-' ? '--' : s.arrive,
+                                  style: const TextStyle(
+                                      fontSize: 12, fontFamily: 'DIN1451')),
+                              Text(s.depart == '-' ? '--' : s.depart,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: 'DIN1451',
+                                      color: Color(0xFF114598))),
                             ],
                           ),
                         ),
                         title: Text(s.station),
-                        trailing: Text('${s.distance}${s.distance != '-' ? 'km' : ''}', style: const TextStyle(fontSize: 12, color: Colors.black45)),
+                        trailing: Text(
+                            '${s.distance}${s.distance != '-' ? 'km' : ''}',
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black45)),
                       ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
-              Text(l10n.dataSource, textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF114598), fontWeight: FontWeight.w600, fontSize: 12)),
+              Text(l10n.dataSource,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: Color(0xFF114598),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12)),
             ],
           );
         },
@@ -173,14 +206,19 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
       showDragHandle: true,
       isScrollControlled: true,
       builder: (sheetContext) => FutureBuilder<Map<String, dynamic>>(
-        future: ref.read(railGoApiProvider).getMapLine(d.trainNum).then((r) => r.data ?? <String, dynamic>{}),
+        future: ref
+            .read(railGoApiProvider)
+            .getMapLine(d.trainNum)
+            .then((r) => r.data ?? <String, dynamic>{}),
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const SizedBox(height: 360, child: Center(child: CircularProgressIndicator()));
+            return const SizedBox(
+                height: 360, child: Center(child: CircularProgressIndicator()));
           }
           final raw = snap.data?['data'];
           if (raw is! Map) {
-            return const SizedBox(height: 240, child: Center(child: Text('暂无线路点数据')));
+            return const SizedBox(
+                height: 240, child: Center(child: Text('暂无线路点数据')));
           }
           final data = MapLineData.parseGCJ(Map<String, dynamic>.from(raw));
           return Padding(
@@ -188,7 +226,8 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('${d.trainNum} 运行线路（WGS-84）', style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text('${d.trainNum} 运行线路（WGS-84）',
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 RouteLineMapView(data: data),
               ],
@@ -199,4 +238,3 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
     );
   }
 }
-

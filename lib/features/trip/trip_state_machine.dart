@@ -69,6 +69,7 @@ class TripStatus {
   final TripPhase phase;
   final int? currentStopIndex;
   final int? nextStopIndex;
+
   /// 状态将在该绝对分钟数（相对发车日零点）发生变化；null = 不再变化（finished/idle 无起点）
   final int? nextChangeAtMinutes;
   final String? reason;
@@ -85,17 +86,21 @@ class TripStateMachine {
     required int nowMinutes,
   }) {
     if (!timetable.isValid) {
-      return const TripStatus(phase: TripPhase.finished, reason: 'invalid_timetable');
+      return const TripStatus(
+          phase: TripPhase.finished, reason: 'invalid_timetable');
     }
     final first = _absDepart(timetable.stops.first);
     if (first == null) {
-      return const TripStatus(phase: TripPhase.finished, reason: 'missing_first_depart');
+      return const TripStatus(
+          phase: TripPhase.finished, reason: 'missing_first_depart');
     }
     // 终到：以最后一站到达（或出发）为终点
     final last = timetable.stops.last;
     final lastMark = _absArrive(last) ?? _absDepart(last);
     if (lastMark != null && nowMinutes > lastMark) {
-      return TripStatus(phase: TripPhase.finished, currentStopIndex: timetable.stops.length - 1);
+      return TripStatus(
+          phase: TripPhase.finished,
+          currentStopIndex: timetable.stops.length - 1);
     }
 
     // 发车前窗口
@@ -106,7 +111,8 @@ class TripStateMachine {
       );
     }
     if (nowMinutes < first) {
-      return TripStatus(phase: TripPhase.departingSoon, nextChangeAtMinutes: first);
+      return TripStatus(
+          phase: TripPhase.departingSoon, nextChangeAtMinutes: first);
     }
 
     // 逐站扫描
@@ -140,7 +146,9 @@ class TripStateMachine {
           return TripStatus(
             phase: isTerminal ? TripPhase.finished : TripPhase.stopped,
             currentStopIndex: i,
-            nextStopIndex: isTerminal ? null : (i + 1 < timetable.stops.length ? i + 1 : null),
+            nextStopIndex: isTerminal
+                ? null
+                : (i + 1 < timetable.stops.length ? i + 1 : null),
             nextChangeAtMinutes: isTerminal ? null : stopEnd,
           );
         }

@@ -7,7 +7,11 @@ library;
 import '../../core/network/railgo_api.dart';
 
 class EmuRunRecord {
-  const EmuRunRecord({required this.trainNum, required this.date, this.emuNo = '', this.note = ''});
+  const EmuRunRecord(
+      {required this.trainNum,
+      required this.date,
+      this.emuNo = '',
+      this.note = ''});
   final String trainNum;
   final String date;
   final String emuNo;
@@ -15,7 +19,12 @@ class EmuRunRecord {
 }
 
 class EmuAssignment {
-  const EmuAssignment({required this.id, required this.model, required this.bureau, this.homeDepot = '', this.extra = const {}});
+  const EmuAssignment(
+      {required this.id,
+      required this.model,
+      required this.bureau,
+      this.homeDepot = '',
+      this.extra = const {}});
   final String id;
   final String model;
   final String bureau;
@@ -49,9 +58,13 @@ class EmuRepository {
   }
 
   /// 配属预查询：纯数字 → Number，否则 Model（基线 emu/result.vue 语义）
-  Future<({List<EmuAssignment> items, int total})> assignmentPrequery(String keyword) async {
-    final type = RegExp(r'^\d+$').hasMatch(keyword) ? EmuKeywordType.number : EmuKeywordType.model;
-    final resp = await _api.emuAssignmentPre(keyword, keywordType: type.name[0].toUpperCase() + type.name.substring(1));
+  Future<({List<EmuAssignment> items, int total})> assignmentPrequery(
+      String keyword) async {
+    final type = RegExp(r'^\d+$').hasMatch(keyword)
+        ? EmuKeywordType.number
+        : EmuKeywordType.model;
+    final resp = await _api.emuAssignmentPre(keyword,
+        keywordType: type.name[0].toUpperCase() + type.name.substring(1));
     final data = resp.data;
     if (data == null || data['success'] != true) {
       return (items: const <EmuAssignment>[], total: 0);

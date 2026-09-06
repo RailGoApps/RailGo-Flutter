@@ -55,10 +55,12 @@ class NotificationLivePushBackend implements LivePushBackend {
   }
 
   @override
-  Future<void> start(String tripId, LivePushContent initial) => _show(tripId, initial);
+  Future<void> start(String tripId, LivePushContent initial) =>
+      _show(tripId, initial);
 
   @override
-  Future<void> update(String tripId, LivePushContent content) => _show(tripId, content);
+  Future<void> update(String tripId, LivePushContent content) =>
+      _show(tripId, content);
 
   @override
   Future<void> stop(String tripId) async {

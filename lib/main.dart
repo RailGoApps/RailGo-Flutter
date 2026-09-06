@@ -34,7 +34,8 @@ void main() async {
 
 // ───────────── Riverpod 装配 ─────────────
 
-final sharedPrefsProvider = Provider<SharedPreferences>((ref) => throw UnimplementedError());
+final sharedPrefsProvider =
+    Provider<SharedPreferences>((ref) => throw UnimplementedError());
 
 final settingsProvider = Provider<SettingsStore>(
   (ref) => SharedPreferencesSettingsStore(ref.watch(sharedPrefsProvider)),
@@ -52,7 +53,8 @@ final apiClientProvider = Provider<RailGoApiClient>((ref) {
   );
 });
 
-final railGoApiProvider = Provider<RailGoApi>((ref) => RailGoApi(ref.watch(apiClientProvider)));
+final railGoApiProvider =
+    Provider<RailGoApi>((ref) => RailGoApi(ref.watch(apiClientProvider)));
 
 class RailGoApp extends ConsumerWidget {
   const RailGoApp({super.key});
@@ -68,7 +70,8 @@ class RailGoApp extends ConsumerWidget {
         fontFamily: 'DIN1451',
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark),
+        colorScheme:
+            ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark),
         fontFamily: 'DIN1451',
       ),
       localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
@@ -80,13 +83,15 @@ class RailGoApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       routes: {
         for (final e in DocAssetPage.kRoutes.entries)
-          e.key: (_) => DocAssetPage(docAsset: e.value, fallbackText: kDocFallbacks[e.value] ?? ''),
+          e.key: (_) => DocAssetPage(
+              docAsset: e.value, fallbackText: kDocFallbacks[e.value] ?? ''),
         '/egg': (_) => const EggFireworksPage(),
         '/newyear': (_) => const NewYearPage(),
         '/aboutEgg': (_) => const AboutEggPage(),
         '/update': (_) => UpdatePage(api: _stubApi()),
         '/speed': (_) => const SpeedPage(),
-        '/station/select': (_) => const SizedBox.shrink(), // 由HomePage以push方式打开（需ref注入）
+        '/station/select': (_) =>
+            const SizedBox.shrink(), // 由HomePage以push方式打开（需ref注入）
       },
       home: const HomePage(),
     );

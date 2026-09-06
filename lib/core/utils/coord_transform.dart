@@ -14,18 +14,44 @@ bool outOfChina(double lng, double lat) =>
     lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
 
 double _transformLat(double x, double y) {
-  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * math.sqrt(x.abs());
-  ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0;
-  ret += (20.0 * math.sin(y * math.pi) + 40.0 * math.sin(y / 3.0 * math.pi)) * 2.0 / 3.0;
-  ret += (160.0 * math.sin(y / 12.0 * math.pi) + 320 * math.sin(y * math.pi / 30.0)) * 2.0 / 3.0;
+  var ret = -100.0 +
+      2.0 * x +
+      3.0 * y +
+      0.2 * y * y +
+      0.1 * x * y +
+      0.2 * math.sqrt(x.abs());
+  ret += (20.0 * math.sin(6.0 * x * math.pi) +
+          20.0 * math.sin(2.0 * x * math.pi)) *
+      2.0 /
+      3.0;
+  ret += (20.0 * math.sin(y * math.pi) + 40.0 * math.sin(y / 3.0 * math.pi)) *
+      2.0 /
+      3.0;
+  ret += (160.0 * math.sin(y / 12.0 * math.pi) +
+          320 * math.sin(y * math.pi / 30.0)) *
+      2.0 /
+      3.0;
   return ret;
 }
 
 double _transformLng(double x, double y) {
-  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * math.sqrt(x.abs());
-  ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0;
-  ret += (20.0 * math.sin(x * math.pi) + 40.0 * math.sin(x / 3.0 * math.pi)) * 2.0 / 3.0;
-  ret += (150.0 * math.sin(x / 12.0 * math.pi) + 300.0 * math.sin(x / 30.0 * math.pi)) * 2.0 / 3.0;
+  var ret = 300.0 +
+      x +
+      2.0 * y +
+      0.1 * x * x +
+      0.1 * x * y +
+      0.1 * math.sqrt(x.abs());
+  ret += (20.0 * math.sin(6.0 * x * math.pi) +
+          20.0 * math.sin(2.0 * x * math.pi)) *
+      2.0 /
+      3.0;
+  ret += (20.0 * math.sin(x * math.pi) + 40.0 * math.sin(x / 3.0 * math.pi)) *
+      2.0 /
+      3.0;
+  ret += (150.0 * math.sin(x / 12.0 * math.pi) +
+          300.0 * math.sin(x / 30.0 * math.pi)) *
+      2.0 /
+      3.0;
   return ret;
 }
 
@@ -73,7 +99,8 @@ class MapLineData {
 
   factory MapLineData.fromWgs({
     required List<({String name, double lng, double lat})> stations,
-    required List<({int index, List<({double lng, double lat})> line})> segments,
+    required List<({int index, List<({double lng, double lat})> line})>
+        segments,
   }) =>
       MapLineData(stations: stations, segments: segments);
 
@@ -101,7 +128,8 @@ class MapLineData {
           final pts = <({double lng, double lat})>[];
           for (final p in (seg['line'] as List)) {
             if (p is List && p.length >= 2) {
-              final (wLat, wLng) = gcj02ToWgs84((p[1] as num).toDouble(), (p[0] as num).toDouble());
+              final (wLat, wLng) = gcj02ToWgs84(
+                  (p[1] as num).toDouble(), (p[0] as num).toDouble());
               pts.add((lng: wLng, lat: wLat));
             }
           }
@@ -118,7 +146,8 @@ class MapLineData {
 }
 
 /// 归一化包围盒（纯函数，供画布投影与单测）
-({double minLng, double maxLng, double minLat, double maxLat}) mapLineBounds(MapLineData d) {
+({double minLng, double maxLng, double minLat, double maxLat}) mapLineBounds(
+    MapLineData d) {
   var minLng = double.infinity, maxLng = double.negativeInfinity;
   var minLat = double.infinity, maxLat = double.negativeInfinity;
   void include(double lng, double lat) {

@@ -18,13 +18,15 @@ void main() {
     test('单块加密符合国标示例', () {
       final engine = Sm4Engine(Sm4Cipher.hexToBytes(stdKeyHex));
       final out = engine.encryptBlock(Sm4Cipher.hexToBytes(stdPlainHex));
-      expect(out.map((b) => b.toRadixString(16).padLeft(2, '0')).join(), stdCipherHex);
+      expect(out.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+          stdCipherHex);
     });
 
     test('单块解密可逆', () {
       final engine = Sm4Engine(Sm4Cipher.hexToBytes(stdKeyHex));
       final out = engine.decryptBlock(Sm4Cipher.hexToBytes(stdCipherHex));
-      expect(out.map((b) => b.toRadixString(16).padLeft(2, '0')).join(), stdPlainHex);
+      expect(out.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+          stdPlainHex);
     });
   });
 
@@ -36,12 +38,14 @@ void main() {
 
     test('分组长度必须 16 字节', () {
       final engine = Sm4Engine(Sm4Cipher.hexToBytes(stdKeyHex));
-      expect(() => engine.encryptBlock(List<int>.filled(15, 0)), throwsArgumentError);
+      expect(() => engine.encryptBlock(List<int>.filled(15, 0)),
+          throwsArgumentError);
     });
 
     test('IV 长度必须 16 字节', () {
       expect(
-        () => Sm4Cipher(Sm4Engine(Sm4Cipher.hexToBytes(stdKeyHex)), iv: Uint8List(8)),
+        () => Sm4Cipher(Sm4Engine(Sm4Cipher.hexToBytes(stdKeyHex)),
+            iv: Uint8List(8)),
         throwsArgumentError,
       );
     });
@@ -79,8 +83,10 @@ void main() {
 
     test('CBC 相同明文不同 IV 密文不同（语义安全基础）', () {
       final plain = utf8.encode('RailGo SM4 CBC 测试数据');
-      final c1 = Sm4Cipher(Sm4Engine(key), iv: Uint8List.fromList(List.filled(16, 0)));
-      final c2 = Sm4Cipher(Sm4Engine(key), iv: Uint8List.fromList(List.filled(16, 1)));
+      final c1 =
+          Sm4Cipher(Sm4Engine(key), iv: Uint8List.fromList(List.filled(16, 0)));
+      final c2 =
+          Sm4Cipher(Sm4Engine(key), iv: Uint8List.fromList(List.filled(16, 1)));
       final e1 = c1.encrypt(plain);
       final e2 = c2.encrypt(plain);
       expect(e1, isNot(equals(e2)));

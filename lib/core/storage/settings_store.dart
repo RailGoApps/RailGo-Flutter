@@ -29,7 +29,8 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   final SharedPreferences _prefs;
 
   @override
-  String? serviceSource(String code) => _prefs.getString('service_source_$code');
+  String? serviceSource(String code) =>
+      _prefs.getString('service_source_$code');
 
   @override
   Future<void> setServiceSource(String code, String url) =>
@@ -68,7 +69,8 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   String get localeOverride => _prefs.getString('localeOverride') ?? '';
 
   @override
-  Future<void> setLocaleOverride(String locale) => _prefs.setString('localeOverride', locale);
+  Future<void> setLocaleOverride(String locale) =>
+      _prefs.setString('localeOverride', locale);
 
   @override
   bool get needAuth => _prefs.getBool('NeedAuth') ?? false;

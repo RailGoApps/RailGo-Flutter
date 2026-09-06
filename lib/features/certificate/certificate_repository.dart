@@ -70,7 +70,8 @@ class CertificateCrypto {
 
   Certificate decrypt(String payload) {
     final cipher = Sm4Cipher(Sm4Engine(_keyBytes));
-    final plain = jsonDecode(cipher.decryptStringFromBase64(payload)) as Map<String, dynamic>;
+    final plain = jsonDecode(cipher.decryptStringFromBase64(payload))
+        as Map<String, dynamic>;
     return Certificate(
       id: plain['id'] as String,
       type: CertType.values.firstWhere(

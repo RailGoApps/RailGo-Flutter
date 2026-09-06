@@ -29,7 +29,8 @@ void main() {
     });
     test('跨日小时与 day 字段兼容', () {
       // 25:30 = 25h30m → day+1 的 01:30
-      expect(absoluteMinutes(day: 0, hhmm: '25:30'), absoluteMinutes(day: 1, hhmm: '01:30'));
+      expect(absoluteMinutes(day: 0, hhmm: '25:30'),
+          absoluteMinutes(day: 1, hhmm: '01:30'));
     });
     test('缺失时刻返回 null', () {
       expect(absoluteMinutes(day: 0, hhmm: null), isNull);

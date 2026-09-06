@@ -20,8 +20,17 @@ class EggFireworksPage extends StatefulWidget {
   State<EggFireworksPage> createState() => _EggFireworksPageState();
 }
 
-class _EggFireworksPageState extends State<EggFireworksPage> with SingleTickerProviderStateMixin {
-  static const _palette = [0xFFFF1493, 0xFF00BFFF, 0xFFADFF2F, 0xFFFFD700, 0xFFFF4500, 0xFFFFFFFF, 0xFF00FFFF];
+class _EggFireworksPageState extends State<EggFireworksPage>
+    with SingleTickerProviderStateMixin {
+  static const _palette = [
+    0xFFFF1493,
+    0xFF00BFFF,
+    0xFFADFF2F,
+    0xFFFFD700,
+    0xFFFF4500,
+    0xFFFFFFFF,
+    0xFF00FFFF
+  ];
   static const _lines = [
     '你来到了没有轨道的荒原',
     '但探索永无止境',
@@ -42,8 +51,11 @@ class _EggFireworksPageState extends State<EggFireworksPage> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
-    _burstTimer = Timer.periodic(const Duration(milliseconds: 700), (_) => _burst());
+    _ctrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat();
+    _burstTimer =
+        Timer.periodic(const Duration(milliseconds: 700), (_) => _burst());
     _typeTimer = Timer.periodic(const Duration(milliseconds: 120), (_) {
       final full = _lines.join('\n');
       if (_typedChars < full.length) setState(() => _typedChars++);
@@ -57,7 +69,8 @@ class _EggFireworksPageState extends State<EggFireworksPage> with SingleTickerPr
     final cy = rnd.nextDouble() * 0.6 + 0.1;
     for (var i = 0; i < 28; i++) {
       final angle = i / 28 * 2 * math.pi;
-      _sparks.add(_Spark(origin: Offset(cx, cy), angle: angle, color: Color(color)));
+      _sparks.add(
+          _Spark(origin: Offset(cx, cy), angle: angle, color: Color(color)));
     }
     if (_sparks.length > 420) _sparks.removeRange(0, _sparks.length - 420);
   }
@@ -88,7 +101,8 @@ class _EggFireworksPageState extends State<EggFireworksPage> with SingleTickerPr
                   children: [
                     Text(_typedText,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, height: 1.8)),
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 18, height: 1.8)),
                     const SizedBox(height: 48),
                     FilledButton(
                       onPressed: () => Navigator.of(context).maybePop(),
@@ -119,7 +133,9 @@ class _FireworksPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..strokeWidth = 1.6..style = PaintingStyle.stroke;
+    final paint = Paint()
+      ..strokeWidth = 1.6
+      ..style = PaintingStyle.stroke;
     for (final s in sparks) {
       final progress = t;
       final dist = 30.0 + progress * 90;
@@ -127,7 +143,8 @@ class _FireworksPainter extends CustomPainter {
       final dir = Offset(math.cos(s.angle), math.sin(s.angle));
       final start = o + dir * dist;
       final end = o + dir * (dist + 14 * (1 - progress));
-      paint.color = s.color.withAlpha((255 * (1 - progress).clamp(0.0, 1.0)).round()); // ohos 3.22 兼容
+      paint.color = s.color.withAlpha(
+          (255 * (1 - progress).clamp(0.0, 1.0)).round()); // ohos 3.22 兼容
       canvas.drawLine(start, end, paint);
     }
   }
@@ -143,25 +160,40 @@ class NewYearPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
-      appBar: AppBar(title: const Text('Error'), backgroundColor: const Color(0xFFB22222), foregroundColor: Colors.white),
+      appBar: AppBar(
+          title: const Text('Error'),
+          backgroundColor: const Color(0xFFB22222),
+          foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text('404', textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 56, fontWeight: FontWeight.w800, color: Color(0xFF114598))),
+          const Text('404',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 56,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF114598))),
           const SizedBox(height: 12),
           const Text('你来到了没有轨道的荒原\n但没关系，铁路行祝您新年快乐！',
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFFB22222))),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFB22222))),
           const SizedBox(height: 36),
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: const Column(
               children: [
                 Text('“爆竹声中一岁除，\n春风送暖入屠苏。”',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.9)),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 16, color: Colors.black54, height: 1.9)),
                 SizedBox(height: 10),
-                Text('— 王安石《元日》', style: TextStyle(fontSize: 12, color: Colors.black45)),
+                Text('— 王安石《元日》',
+                    style: TextStyle(fontSize: 12, color: Colors.black45)),
               ],
             ),
           ),
@@ -174,7 +206,8 @@ class NewYearPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB22222)),
+            style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFB22222)),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const EggFireworksPage()),
             ),
@@ -189,7 +222,8 @@ class NewYearPage extends StatelessWidget {
 class AboutEggPage extends StatelessWidget {
   const AboutEggPage({super.key});
 
-  static const story = 'lxy同学握着她那台索尼A7S2站在教学楼二楼风雨长廊的门口……（原文见基线 pages/about/egg.vue，此处保留入口与 Funnyegg 语义）';
+  static const story =
+      'lxy同学握着她那台索尼A7S2站在教学楼二楼风雨长廊的门口……（原文见基线 pages/about/egg.vue，此处保留入口与 Funnyegg 语义）';
 
   @override
   Widget build(BuildContext context) {

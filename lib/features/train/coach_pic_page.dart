@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import '../../core/network/railgo_api.dart';
 
 class CoachPicPage extends StatefulWidget {
-  const CoachPicPage({super.key, required this.api, required this.trainNum, this.carModel});
+  const CoachPicPage(
+      {super.key, required this.api, required this.trainNum, this.carModel});
   final RailGoApi api;
   final String trainNum;
 
@@ -40,7 +41,8 @@ class _CoachPicPageState extends State<CoachPicPage> {
           final r = await widget.api.getCoachPic(widget.trainNum);
           final d = r.data;
           if (d != null && d['success'] == true && d['data'] is Map) {
-            final url = (d['data'] as Map)['image_url'] ?? (d['data'] as Map)['url'];
+            final url =
+                (d['data'] as Map)['image_url'] ?? (d['data'] as Map)['url'];
             if (mounted && url != null) {
               setState(() => _officialUrl = url.toString());
             }
@@ -103,7 +105,8 @@ class _CoachPicPageState extends State<CoachPicPage> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+            child: Text(title,
+                style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
           Image.network(
             url,
@@ -112,11 +115,12 @@ class _CoachPicPageState extends State<CoachPicPage> {
               padding: EdgeInsets.all(20),
               child: Center(child: Text('图片加载失败')),
             ),
-            loadingBuilder: (context, child, progress) =>
-                progress == null ? child : const Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+            loadingBuilder: (context, child, progress) => progress == null
+                ? child
+                : const Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
           ),
         ],
       ),

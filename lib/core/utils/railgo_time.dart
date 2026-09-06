@@ -50,7 +50,10 @@ List<int> inferDayOffsets(List<({String? arrive, String? depart})> stops) {
   for (var i = 0; i < stops.length; i++) {
     final a = parseTimeToMinutes(stops[i].arrive);
     final d = parseTimeToMinutes(stops[i].depart);
-    if (i > 0 && a != null && prevDepartAbs != null && a + day * 1440 < prevDepartAbs) {
+    if (i > 0 &&
+        a != null &&
+        prevDepartAbs != null &&
+        a + day * 1440 < prevDepartAbs) {
       day += 1;
     }
     offsets[i] = day;

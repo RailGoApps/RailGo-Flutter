@@ -37,12 +37,28 @@ void main() {
     test('stations/train 段解析 + GCJ→WGS 自动转换 + 按 index 排序', () {
       final data = MapLineData.parseGCJ({
         'stations': [
-          {'北京南': [116.37863, 39.86532]},
-          {'上海虹桥': [121.31589, 31.19363]},
+          {
+            '北京南': [116.37863, 39.86532]
+          },
+          {
+            '上海虹桥': [121.31589, 31.19363]
+          },
         ],
         'train': {
-          'b': {'index': 2, 'line': [[117.0, 36.5], [118.0, 36.6]]},
-          'a': {'index': 1, 'line': [[116.4, 39.8], [117.0, 36.5]]},
+          'b': {
+            'index': 2,
+            'line': [
+              [117.0, 36.5],
+              [118.0, 36.6]
+            ]
+          },
+          'a': {
+            'index': 1,
+            'line': [
+              [116.4, 39.8],
+              [117.0, 36.5]
+            ]
+          },
         },
       });
       expect(data.stations.length, 2);
@@ -57,7 +73,10 @@ void main() {
       final data = MapLineData.parseGCJ({});
       expect(data.stations, isEmpty);
       expect(data.segments, isEmpty);
-      final data2 = MapLineData.parseGCJ({'stations': ['junk', <String, dynamic>{}], 'train': 'bad'});
+      final data2 = MapLineData.parseGCJ({
+        'stations': ['junk', <String, dynamic>{}],
+        'train': 'bad'
+      });
       expect(data2.stations, isEmpty);
     });
   });
@@ -67,7 +86,8 @@ void main() {
       final (nx, ny) = projectNormalized(116.5, 37.0, 116.0, 117.0, 36.5, 37.5);
       expect(nx, 0.5);
       expect(ny, 0.5);
-      final (nx2, ny2) = projectNormalized(116.0, 37.5, 116.0, 117.0, 36.5, 37.5);
+      final (nx2, ny2) =
+          projectNormalized(116.0, 37.5, 116.0, 117.0, 36.5, 37.5);
       expect(nx2, closeTo(0.0, 0.26)); // 等比保形下 lng 半径只占一半
       expect(ny2, closeTo(0.0, 0.05));
       expect(nx2, greaterThanOrEqualTo(0));

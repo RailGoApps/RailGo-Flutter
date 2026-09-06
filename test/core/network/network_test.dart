@@ -13,11 +13,16 @@ void main() {
       }
     });
     test('缺省域名与基线一致', () {
-      expect(kServiceCatalog[ServiceCode.train]!.defaultBase, 'https://data.railgo.zenglingkun.cn');
-      expect(kServiceCatalog[ServiceCode.trainV2]!.defaultBase, 'https://rg-api.zenglingkun.cn');
-      expect(kServiceCatalog[ServiceCode.emuRun]!.defaultBase, 'https://emu.railgo.zenglingkun.cn');
-      expect(kServiceCatalog[ServiceCode.notice]!.defaultBase, 'https://gateway.zenglingkun.cn');
-      expect(kServiceCatalog[ServiceCode.tp]!.defaultBase, 'https://tp.railgo.zenglingkun.cn');
+      expect(kServiceCatalog[ServiceCode.train]!.defaultBase,
+          'https://data.railgo.zenglingkun.cn');
+      expect(kServiceCatalog[ServiceCode.trainV2]!.defaultBase,
+          'https://rg-api.zenglingkun.cn');
+      expect(kServiceCatalog[ServiceCode.emuRun]!.defaultBase,
+          'https://emu.railgo.zenglingkun.cn');
+      expect(kServiceCatalog[ServiceCode.notice]!.defaultBase,
+          'https://gateway.zenglingkun.cn');
+      expect(kServiceCatalog[ServiceCode.tp]!.defaultBase,
+          'https://tp.railgo.zenglingkun.cn');
     });
     test('服务发现响应解析（[{code:[{desc,url}]}]）', () {
       final parsed = parseServiceEndpoints([
@@ -37,7 +42,13 @@ void main() {
     test('脏数据容错：非 Map 项/缺 url 跳过', () {
       final parsed = parseServiceEndpoints([
         'not-a-map',
-        {'x': <dynamic>[{'desc': 1, 'url': null}, 'junk', {'url': 'https://ok'}]},
+        {
+          'x': <dynamic>[
+            {'desc': 1, 'url': null},
+            'junk',
+            {'url': 'https://ok'}
+          ]
+        },
       ]);
       expect(parsed['x']!.length, 1);
       expect(parsed['x']!.first.url, 'https://ok');
@@ -69,7 +80,13 @@ void main() {
         running--;
       }
 
-      await Future.wait([gate.run(task), gate.run(task), gate.run(task), gate.run(task), gate.run(task)]);
+      await Future.wait([
+        gate.run(task),
+        gate.run(task),
+        gate.run(task),
+        gate.run(task),
+        gate.run(task)
+      ]);
       expect(maxRunning, lessThanOrEqualTo(2));
     });
   });

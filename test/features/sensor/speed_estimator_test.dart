@@ -55,10 +55,12 @@ void main() {
       final t0 = DateTime(2025, 1, 1, 8);
       e.feedValues(0, 0, 9.80665, now: t0);
       // 回跳
-      final s1 = e.feedValues(0, 0, 9.80665, now: t0.subtract(const Duration(seconds: 3)));
+      final s1 = e.feedValues(0, 0, 9.80665,
+          now: t0.subtract(const Duration(seconds: 3)));
       expect(s1.speedMs, 0);
       // 超长间隔
-      final s2 = e.feedValues(0, 0, 9.80665, now: t0.add(const Duration(seconds: 30)));
+      final s2 =
+          e.feedValues(0, 0, 9.80665, now: t0.add(const Duration(seconds: 30)));
       expect(s2.speedMs, 0);
     });
 
@@ -77,9 +79,18 @@ void main() {
     });
 
     test('兜底触发条件', () {
-      expect(AccelerometerSpeedEstimator.shouldFallback(locationAvailable: false, hasSpeed: false), isTrue);
-      expect(AccelerometerSpeedEstimator.shouldFallback(locationAvailable: true, hasSpeed: false), isTrue);
-      expect(AccelerometerSpeedEstimator.shouldFallback(locationAvailable: true, hasSpeed: true), isFalse);
+      expect(
+          AccelerometerSpeedEstimator.shouldFallback(
+              locationAvailable: false, hasSpeed: false),
+          isTrue);
+      expect(
+          AccelerometerSpeedEstimator.shouldFallback(
+              locationAvailable: true, hasSpeed: false),
+          isTrue);
+      expect(
+          AccelerometerSpeedEstimator.shouldFallback(
+              locationAvailable: true, hasSpeed: true),
+          isFalse);
     });
   });
 }

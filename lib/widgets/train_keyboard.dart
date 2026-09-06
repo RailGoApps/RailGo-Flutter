@@ -76,8 +76,10 @@ class TrainKeyboard extends StatelessWidget {
         for (var row = 0; row < 4; row++)
           Row(
             children: [
-              for (final letter in _letters[row]) _key(letter, () => _onLetter(letter), cs),
-              for (var col = 0; col < 5 - _letters[row].length; col++) ..._buildRowTail(row, col, cs),
+              for (final letter in _letters[row])
+                _key(letter, () => _onLetter(letter), cs),
+              for (var col = 0; col < 5 - _letters[row].length; col++)
+                ..._buildRowTail(row, col, cs),
             ],
           ),
       ]),
@@ -98,7 +100,8 @@ class TrainKeyboard extends StatelessWidget {
     return [_key(digit, () => _onDigit(digit), cs)];
   }
 
-  Widget _key(String label, VoidCallback onTap, ColorScheme cs, {bool isDelete = false}) {
+  Widget _key(String label, VoidCallback onTap, ColorScheme cs,
+      {bool isDelete = false}) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(3),
@@ -113,7 +116,11 @@ class TrainKeyboard extends StatelessWidget {
               child: Center(
                 child: isDelete
                     ? Icon(Icons.backspace_outlined, color: cs.onErrorContainer)
-                    : Text(label, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: cs.onSurface)),
+                    : Text(label,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface)),
               ),
             ),
           ),

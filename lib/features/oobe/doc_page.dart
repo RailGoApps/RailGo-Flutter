@@ -9,7 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 class DocAssetPage extends StatelessWidget {
-  const DocAssetPage({super.key, required this.docAsset, required this.fallbackText, this.appBarTitle});
+  const DocAssetPage(
+      {super.key,
+      required this.docAsset,
+      required this.fallbackText,
+      this.appBarTitle});
 
   /// 例 'assets/docs/eula.md'
   final String docAsset;

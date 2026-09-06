@@ -83,7 +83,8 @@ class TrainRepository {
   final OfflineDb? offlineDb;
 
   /// 在线主链路（V2 主数据 + V1 补全合并）
-  Future<TrainDetail> fetchOnline({required String trainNum, String? date}) async {
+  Future<TrainDetail> fetchOnline(
+      {required String trainNum, String? date}) async {
     final v2 = await _api.getTrainMain(trainNum: trainNum, date: date);
     final data = v2.data;
     if (data == null || data['success'] != true) {
@@ -107,7 +108,8 @@ class TrainRepository {
         final v1Timetable = v1Data['timetable'] as List<dynamic>? ?? [];
         for (final item in v1Timetable) {
           if (item is Map && item['stationTelecode'] != null) {
-            v1Map[item['stationTelecode'] as String] = Map<String, dynamic>.from(item);
+            v1Map[item['stationTelecode'] as String] =
+                Map<String, dynamic>.from(item);
           }
         }
         if (v1Data['diagram'] is List) {
@@ -131,8 +133,10 @@ class TrainRepository {
               arrive: (s['arrive'] ?? '-').toString(),
               depart: (s['depart'] ?? '-').toString(),
               day: (s['day'] as num? ?? 0).toInt(),
-              distance: (v1Map[s['stationTelecode']]?['distance'] ?? '-').toString(),
-              speed: (v1Map[s['stationTelecode']]?['speed'] as num? ?? 0).toInt(),
+              distance:
+                  (v1Map[s['stationTelecode']]?['distance'] ?? '-').toString(),
+              speed:
+                  (v1Map[s['stationTelecode']]?['speed'] as num? ?? 0).toInt(),
             );
           }(),
     ];
@@ -144,9 +148,13 @@ class TrainRepository {
       car: (d['car'] ?? '') as String,
       carOwner: (d['carOwner'] ?? '') as String,
       runner: (d['runner'] ?? '') as String,
-      numberFull: (d['numberFull'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+      numberFull: (d['numberFull'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
       numberKind: (d['numberKind'] ?? '').toString(),
-      rundays: (d['rundays'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+      rundays: (d['rundays'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
       spend: (d['spend'] as num? ?? 0).toInt(),
       stops: stops,
       diagram: diagram,

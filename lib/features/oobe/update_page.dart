@@ -11,7 +11,11 @@ import '../../core/network/railgo_api.dart';
 const String kAppVersionText = '3.0.0 Build 30000';
 
 class UpdateCheckResult {
-  const UpdateCheckResult({required this.latest, required this.current, required this.hasUpdate, this.downloadUrl});
+  const UpdateCheckResult(
+      {required this.latest,
+      required this.current,
+      required this.hasUpdate,
+      this.downloadUrl});
   final String latest;
   final String current;
   final bool hasUpdate;
@@ -19,7 +23,11 @@ class UpdateCheckResult {
 }
 
 class UpdatePage extends StatefulWidget {
-  const UpdatePage({super.key, required this.api, this.currentDbVersion = '未下载', this.isAndroid = true});
+  const UpdatePage(
+      {super.key,
+      required this.api,
+      this.currentDbVersion = '未下载',
+      this.isAndroid = true});
   final RailGoApi api;
   final String currentDbVersion;
   final bool isAndroid;
@@ -56,7 +64,9 @@ class _UpdatePageState extends State<UpdatePage> {
           latest: latestApp,
           current: kAppVersionText,
           hasUpdate: latestApp.isNotEmpty && latestApp != kAppVersionText,
-          downloadUrl: (pack.data?['data'] is Map) ? pack.data!['data']['url'] as String? : null,
+          downloadUrl: (pack.data?['data'] is Map)
+              ? pack.data!['data']['url'] as String?
+              : null,
         );
       }
       final dbUrl = await widget.api.offlineDbUrl();
@@ -65,7 +75,9 @@ class _UpdatePageState extends State<UpdatePage> {
         latest: latestDb,
         current: widget.currentDbVersion,
         hasUpdate: latestDb.isNotEmpty && latestDb != widget.currentDbVersion,
-        downloadUrl: (dbUrl.data?['data'] is Map) ? dbUrl.data!['data']['url'] as String? : null,
+        downloadUrl: (dbUrl.data?['data'] is Map)
+            ? dbUrl.data!['data']['url'] as String?
+            : null,
       );
       setState(() {
         _appResult = appResult;
@@ -125,11 +137,18 @@ class _UpdatePageState extends State<UpdatePage> {
                   child: Text(r.hasUpdate ? '发现新版本' : '已是最新',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: r.hasUpdate ? const Color(0xFF114598) : Colors.green.shade700,
+                        color: r.hasUpdate
+                            ? const Color(0xFF114598)
+                            : Colors.green.shade700,
                       )),
                 ),
-                Icon(r.hasUpdate ? Icons.download_rounded : Icons.check_circle_outline,
-                    color: r.hasUpdate ? const Color(0xFF114598) : Colors.green.shade700),
+                Icon(
+                    r.hasUpdate
+                        ? Icons.download_rounded
+                        : Icons.check_circle_outline,
+                    color: r.hasUpdate
+                        ? const Color(0xFF114598)
+                        : Colors.green.shade700),
               ],
             ),
             const Divider(height: 20),

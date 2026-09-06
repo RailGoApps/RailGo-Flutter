@@ -39,7 +39,11 @@ SpringDescription get kAppleSpringSheet => SpringDescription.withDampingRatio(
     );
 
 class AdaptiveNavItem {
-  const AdaptiveNavItem({required this.label, required this.icon, required this.selectedIcon, required this.onTap});
+  const AdaptiveNavItem(
+      {required this.label,
+      required this.icon,
+      required this.selectedIcon,
+      required this.onTap});
   final String label;
   final IconData icon;
   final IconData selectedIcon;
@@ -127,9 +131,14 @@ class AdaptiveBottomNav extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(selected ? item.selectedIcon : item.icon, color: color, size: 22),
+            Icon(selected ? item.selectedIcon : item.icon,
+                color: color, size: 22),
             const SizedBox(height: 2),
-            Text(item.label, style: TextStyle(fontSize: 11, color: color, fontWeight: selected ? FontWeight.w600 : FontWeight.w500)),
+            Text(item.label,
+                style: TextStyle(
+                    fontSize: 11,
+                    color: color,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500)),
           ],
         ),
       ),
@@ -158,14 +167,16 @@ class AdaptiveBottomNav extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       child: Material(
-        color: cs.surfaceContainerHighest.withAlpha(230), // withAlpha: 3.22 存在 / 3.27 未废弃（ohos 工具链兼容）
+        color: cs.surfaceContainerHighest
+            .withAlpha(230), // withAlpha: 3.22 存在 / 3.27 未废弃（ohos 工具链兼容）
         borderRadius: BorderRadius.circular(32),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              for (var i = 0; i < items.length; i++) _arkuiItem(cs, items[i], i == selectedIndex),
+              for (var i = 0; i < items.length; i++)
+                _arkuiItem(cs, items[i], i == selectedIndex),
             ],
           ),
         ),
@@ -191,7 +202,8 @@ class AdaptiveBottomNav extends StatelessWidget {
                 size: 18, color: selected ? cs.onPrimary : cs.onSurfaceVariant),
             if (selected) ...[
               const SizedBox(width: 6),
-              Text(item.label, style: TextStyle(fontSize: 13, color: cs.onPrimary)),
+              Text(item.label,
+                  style: TextStyle(fontSize: 13, color: cs.onPrimary)),
             ],
           ],
         ),

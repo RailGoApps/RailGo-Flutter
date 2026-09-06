@@ -65,9 +65,21 @@ class _HomePageState extends ConsumerState<HomePage> {
     final l10n = AppLocalizations.of(context);
     final flavor = inferFlavor(Theme.of(context).platform);
     final items = [
-      AdaptiveNavItem(label: l10n.tabTrips, icon: Icons.route_outlined, selectedIcon: Icons.route, onTap: () => setState(() => _tab = 0)),
-      AdaptiveNavItem(label: l10n.tabQuery, icon: Icons.search_outlined, selectedIcon: Icons.search, onTap: () => setState(() => _tab = 1)),
-      AdaptiveNavItem(label: l10n.tabSettings, icon: Icons.settings_outlined, selectedIcon: Icons.settings, onTap: () => setState(() => _tab = 2)),
+      AdaptiveNavItem(
+          label: l10n.tabTrips,
+          icon: Icons.route_outlined,
+          selectedIcon: Icons.route,
+          onTap: () => setState(() => _tab = 0)),
+      AdaptiveNavItem(
+          label: l10n.tabQuery,
+          icon: Icons.search_outlined,
+          selectedIcon: Icons.search,
+          onTap: () => setState(() => _tab = 1)),
+      AdaptiveNavItem(
+          label: l10n.tabSettings,
+          icon: Icons.settings_outlined,
+          selectedIcon: Icons.settings,
+          onTap: () => setState(() => _tab = 2)),
     ];
     return Scaffold(
       body: switch (_tab) {
@@ -127,7 +139,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               setState(() => _versionTaps++);
               if (_versionTaps >= 5) {
                 _versionTaps = 0;
-                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutEggRoute()));
+                Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => const AboutEggRoute()));
               }
             },
             child: const Text('3.0.0'),
@@ -216,7 +229,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           padding: const EdgeInsets.all(16),
           child: Text(l10n.dataSource,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF114598), fontWeight: FontWeight.w600)),
+              style: const TextStyle(
+                  color: Color(0xFF114598), fontWeight: FontWeight.w600)),
         ),
       ],
     );
@@ -254,7 +268,8 @@ class _TripBoard extends ConsumerWidget {
         }
         final board = snap.data ?? const <TripWithStatus>[];
         if (board.isEmpty) {
-          return Center(child: Text(l10n.tripEmpty, textAlign: TextAlign.center));
+          return Center(
+              child: Text(l10n.tripEmpty, textAlign: TextAlign.center));
         }
         return ListView.builder(
           padding: const EdgeInsets.all(12),
@@ -269,20 +284,30 @@ class _TripBoard extends ConsumerWidget {
                   width: 64,
                   child: Center(
                     child: Text(item.trip.trainNum,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF114598))),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: Color(0xFF114598))),
                   ),
                 ),
-                title: Text('${item.trip.stops.first.station} → ${item.trip.stops.last.station}'),
+                title: Text(
+                    '${item.trip.stops.first.station} → ${item.trip.stops.last.station}'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(_phaseLabel(l10n, item.status.phase)),
                     if (warn != null)
-                      Text(warn, style: const TextStyle(color: Color(0xFFB22222), fontSize: 12)),
-                    if (msg != null) Text(msg, style: const TextStyle(color: Color(0xFF459811), fontSize: 12)),
+                      Text(warn,
+                          style: const TextStyle(
+                              color: Color(0xFFB22222), fontSize: 12)),
+                    if (msg != null)
+                      Text(msg,
+                          style: const TextStyle(
+                              color: Color(0xFF459811), fontSize: 12)),
                   ],
                 ),
-                trailing: Text(item.trip.dateYmd, style: const TextStyle(fontSize: 12)),
+                trailing: Text(item.trip.dateYmd,
+                    style: const TextStyle(fontSize: 12)),
               ),
             );
           },

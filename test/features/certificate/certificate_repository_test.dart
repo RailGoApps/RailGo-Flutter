@@ -20,7 +20,9 @@ class _FakeGate implements AuthGate {
   final bool willPass;
   @override
   Future<GateResult> requireUnlock({String reason = ''}) async {
-    return GateResult(passed: willPass, method: willPass ? GateMethod.biometric : GateMethod.denied);
+    return GateResult(
+        passed: willPass,
+        method: willPass ? GateMethod.biometric : GateMethod.denied);
   }
 
   @override
@@ -58,7 +60,8 @@ void main() {
   test('SM4 加密落库 → 解密还原全部字段（含中文）', () async {
     final repo = CertificateRepository(
       gate: const _FakeGate(true),
-      keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
+      keySource:
+          _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
       storage: _MemStorage(),
     );
     await repo.save(cert);
@@ -75,7 +78,8 @@ void main() {
     final storage = _MemStorage();
     final repo = CertificateRepository(
       gate: const _FakeGate(true),
-      keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i + 1))),
+      keySource:
+          _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i + 1))),
       storage: storage,
     );
     await repo.save(cert);
@@ -87,7 +91,8 @@ void main() {
   test('门禁拒绝 → 读写均抛 GateDeniedException（红队：无绕过路径）', () async {
     final repo = CertificateRepository(
       gate: const _FakeGate(false),
-      keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
+      keySource:
+          _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
       storage: _MemStorage(),
     );
     await expectLater(repo.save(cert), throwsA(isA<GateDeniedException>()));
@@ -95,8 +100,10 @@ void main() {
   });
 
   test('密钥错误 → 解密抛 FormatException 而非泄漏乱码', () {
-    final k1 = CertificateCrypto(Uint8List.fromList(List<int>.generate(16, (i) => i)));
-    final k2 = CertificateCrypto(Uint8List.fromList(List<int>.generate(16, (i) => 255 - i)));
+    final k1 =
+        CertificateCrypto(Uint8List.fromList(List<int>.generate(16, (i) => i)));
+    final k2 = CertificateCrypto(
+        Uint8List.fromList(List<int>.generate(16, (i) => 255 - i)));
     final payload = k1.encrypt(cert);
     expect(() => k2.decrypt(payload), throwsFormatException);
   });

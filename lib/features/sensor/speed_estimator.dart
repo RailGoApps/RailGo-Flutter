@@ -82,9 +82,12 @@ class AccelerometerSpeedEstimator {
   }
 
   SpeedSample _sample(DateTime ts) {
-    final elapsed = _history.isEmpty ? 0 : ts.difference(_history.first.t).inMicroseconds / 1e6;
+    final elapsed = _history.isEmpty
+        ? 0
+        : ts.difference(_history.first.t).inMicroseconds / 1e6;
     // 误差传播：传感器噪声经积分放大 σ_v ≈ σ_a · t/√2 + 精度限
-    final sigma = math.sqrt(elapsed / 2) * sensorNoiseSigma + sensorAccuracy * elapsed * 0.5;
+    final sigma = math.sqrt(elapsed / 2) * sensorNoiseSigma +
+        sensorAccuracy * elapsed * 0.5;
     final speed = speedMetersPerSecond;
     return SpeedSample(
       timestamp: ts,
@@ -109,7 +112,8 @@ class AccelerometerSpeedEstimator {
   }
 
   /// 是否应启用兜底模式（定位不可用判定由上层 LocationService 给出）
-  static bool shouldFallback({required bool locationAvailable, required bool hasSpeed}) =>
+  static bool shouldFallback(
+          {required bool locationAvailable, required bool hasSpeed}) =>
       !locationAvailable || !hasSpeed;
 }
 

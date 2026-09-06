@@ -64,7 +64,10 @@ abstract class AuthGate {
 }
 
 class LocalAuthGate implements AuthGate {
-  LocalAuthGate({LocalAuthentication? localAuth, SharedPreferences? prefs, PinHasher? hasher})
+  LocalAuthGate(
+      {LocalAuthentication? localAuth,
+      SharedPreferences? prefs,
+      PinHasher? hasher})
       : _la = localAuth ?? LocalAuthentication(),
         _prefs = prefs,
         _hasher = hasher ?? const PinHasher();
@@ -104,7 +107,8 @@ class LocalAuthGate implements AuthGate {
       return const GateResult(passed: false, method: GateMethod.denied);
     }
     final ok = _hasher.fixedTimeEquals(_hasher.hash(input, salt), stored);
-    return GateResult(passed: ok, method: ok ? GateMethod.pin : GateMethod.denied);
+    return GateResult(
+        passed: ok, method: ok ? GateMethod.pin : GateMethod.denied);
   }
 
   @override

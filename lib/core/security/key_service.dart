@@ -20,13 +20,17 @@ abstract class Sm4KeySource {
 
 class SecureStorageKeyService implements Sm4KeySource {
   SecureStorageKeyService({FlutterSecureStorage? storage, this.pinFallback})
-      : _storage = storage ?? const FlutterSecureStorage(
-            aOptions: AndroidOptions(encryptedSharedPreferences: true),
-            iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device));
+      : _storage = storage ??
+            const FlutterSecureStorage(
+                aOptions: AndroidOptions(encryptedSharedPreferences: true),
+                iOptions: IOSOptions(
+                    accessibility:
+                        KeychainAccessibility.first_unlock_this_device));
 
   static const _kKeyEntry = 'railgo.sm4.master.key';
 
   final FlutterSecureStorage _storage;
+
   /// 可选 PIN 兜底（Keystore 损坏时使用）；null 则直接抛出
   final String? pinFallback;
 
@@ -38,7 +42,9 @@ class SecureStorageKeyService implements Sm4KeySource {
         return Sm4KeyService.hexToBytes(stored);
       }
       final fresh = _generateKey();
-      await _storage.write(key: _kKeyEntry, value: fresh.map((b) => b.toRadixString(16).padLeft(2, '0')).join());
+      await _storage.write(
+          key: _kKeyEntry,
+          value: fresh.map((b) => b.toRadixString(16).padLeft(2, '0')).join());
       return fresh;
     } catch (_) {
       // 安全存储不可用（Keystore 损坏等）→ PIN 派生兜底
@@ -49,8 +55,8 @@ class SecureStorageKeyService implements Sm4KeySource {
     }
   }
 
-  static Uint8List _generateKey() =>
-      Uint8List.fromList(List<int>.generate(16, (_) => Random.secure().nextInt(256)));
+  static Uint8List _generateKey() => Uint8List.fromList(
+      List<int>.generate(16, (_) => Random.secure().nextInt(256)));
 }
 
 class Sm4KeyService {

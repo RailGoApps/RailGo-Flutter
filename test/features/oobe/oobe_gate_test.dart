@@ -12,7 +12,8 @@ class _FakeSettings implements SettingsStore {
   @override
   String? serviceSource(String code) => sources[code];
   @override
-  Future<void> setServiceSource(String code, String url) async => sources[code] = url;
+  Future<void> setServiceSource(String code, String url) async =>
+      sources[code] = url;
   @override
   AppMode get mode => AppMode.network;
   @override
@@ -41,7 +42,8 @@ void main() {
   });
 
   test('oobe 完成但服务源缺失 → serviceSource', () {
-    final s = _FakeSettings(oobe: true, sources: {ServiceCode.train: 'https://a'});
+    final s =
+        _FakeSettings(oobe: true, sources: {ServiceCode.train: 'https://a'});
     expect(resolveOobeRoute(s), OobeRoute.serviceSource);
   });
 
@@ -57,6 +59,7 @@ void main() {
   test('任一服务源为空串视为缺失', () {
     final map = {for (final c in ServiceCode.all) c: 'https://svc/$c'};
     map[ServiceCode.tp] = '';
-    expect(resolveOobeRoute(_FakeSettings(oobe: true, sources: map)), OobeRoute.serviceSource);
+    expect(resolveOobeRoute(_FakeSettings(oobe: true, sources: map)),
+        OobeRoute.serviceSource);
   });
 }

@@ -20,11 +20,12 @@ class RailGoApiClient {
     BaseUrlResolver? resolveBase,
     TokenBucket? bucket,
     ConcurrencyGate? gate,
-  })  : _dio = dio ?? Dio(BaseOptions(
-          connectTimeout: const Duration(seconds: 12),
-          receiveTimeout: const Duration(seconds: 20),
-          headers: {'User-Agent': 'RailGo-Flutter/3.0'},
-        )),
+  })  : _dio = dio ??
+            Dio(BaseOptions(
+              connectTimeout: const Duration(seconds: 12),
+              receiveTimeout: const Duration(seconds: 20),
+              headers: {'User-Agent': 'RailGo-Flutter/3.0'},
+            )),
         _resolveBase = resolveBase,
         _bucket = bucket,
         _gate = gate ?? ConcurrencyGate(4);
@@ -74,13 +75,15 @@ class RailGoApiClient {
 
   /// 固定主机端点（鉴权 center.zenglingkun.cn、tp 图床、赞助/反馈、12306、idcmoss 图库等）。
   /// 这些不属于 15 服务源体系，直接传完整 URI。
-  Future<Response<T>> getAbsolute<T>(String uri, {Map<String, dynamic>? query}) async {
+  Future<Response<T>> getAbsolute<T>(String uri,
+      {Map<String, dynamic>? query}) async {
     if (_bucket != null) await _bucket.acquire();
     return _gate.run(() => _dio.get<T>(uri, queryParameters: query));
   }
 
   /// 固定主机表单 POST（配属查询 trainAssignment 等）
-  Future<Response<T>> postFormAbsolute<T>(String uri, {Map<String, dynamic>? fields}) async {
+  Future<Response<T>> postFormAbsolute<T>(String uri,
+      {Map<String, dynamic>? fields}) async {
     if (_bucket != null) await _bucket.acquire();
     return _gate.run(() => _dio.post<T>(
           uri,
