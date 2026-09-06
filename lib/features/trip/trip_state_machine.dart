@@ -147,7 +147,7 @@ class TripStateMachine {
           );
         }
         // 已过本站出发时间 → 进入下一区间（继续循环）
-        if (isTerminal) {
+        if (i == timetable.stops.length - 1) {
           return TripStatus(phase: TripPhase.finished, currentStopIndex: i);
         }
       }

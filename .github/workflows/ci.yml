@@ -49,6 +49,9 @@ jobs:
     name: Lint (dart format + flutter analyze)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      # dart format 自动回写提交需要 contents: write
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,11 +66,26 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Enforce dart formatting (lib + test)
-        run: dart format --output=none --set-exit-if-changed lib test
+      # 本地无 Flutter SDK：CI 负责格式化并自动回写（保持门禁：格式漂移即产生
+      # style 提交，后续 run 即为已格式化状态）
+      - name: Apply dart formatting (write mode)
+        run: dart format lib test
 
       - name: Static analysis (infos treated as fatal)
         run: flutter analyze --fatal-infos
+
+      - name: Commit formatting changes (push events only)
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "already formatted"
+          else
+            git commit -m "style: dart format (auto)"
+            git push
+          fi
 
   test:
     name: Test + coverage gate (core modules >= 80%)

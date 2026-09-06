@@ -9,7 +9,7 @@ void main() {
       expect(parseTimeToMinutes('23:59'), 1439);
       expect(parseTimeToMinutes('00:00'), 0);
     });
-    test('跨日 25:30 → 1530（次日 05:30）', () {
+    test('跨日 25:30 → 1530（次日 01:30 的绝对分钟）', () {
       expect(parseTimeToMinutes('25:30'), 1530);
     });
     test('非法输入返回 null', () {
@@ -28,8 +28,8 @@ void main() {
       expect(absoluteMinutes(day: 1, hhmm: '01:10'), 1510);
     });
     test('跨日小时与 day 字段兼容', () {
-      // 25:30 与 day=0 等价于 05:30 与 day=1
-      expect(absoluteMinutes(day: 0, hhmm: '25:30'), absoluteMinutes(day: 1, hhmm: '05:30'));
+      // 25:30 = 25h30m → day+1 的 01:30
+      expect(absoluteMinutes(day: 0, hhmm: '25:30'), absoluteMinutes(day: 1, hhmm: '01:30'));
     });
     test('缺失时刻返回 null', () {
       expect(absoluteMinutes(day: 0, hhmm: null), isNull);

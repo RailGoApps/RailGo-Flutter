@@ -53,8 +53,9 @@ class AccelerometerSpeedEstimator {
 
   double get speedMetersPerSecond => _integral < 0 ? 0 : _integral;
 
-  /// 喂入加速度样本（sensors_plus 的 Triple/AccelerometerEvent；now 可注入便于测试）
-  SpeedSample feed(Triple triple, {DateTime? now}) => feedValues(triple.x, triple.y, triple.z, now: now);
+  /// 喂入加速度样本（sensors_plus 的 AccelerometerEvent；now 可注入便于测试）
+  SpeedSample feed(AccelerometerEvent event, {DateTime? now}) =>
+      feedValues(event.x, event.y, event.z, now: now);
 
   /// 与 Triple 构造器解耦的数值入口（测试/无传感器环境使用）
   SpeedSample feedValues(double x, double y, double z, {DateTime? now}) {

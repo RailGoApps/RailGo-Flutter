@@ -147,3 +147,4 @@ class TripTimetableRow {
   const TripTimetableRow({required this.stops, required this.numberFull});
   final List<({String station, String telecode, String? arrive, String? depart})> stops;
   final List<String> numberFull;
+}

@@ -53,12 +53,12 @@ void main() {
     test('时间回跳/异常间隔：丢弃样本不崩溃不产生负速度', () {
       final e = AccelerometerSpeedEstimator();
       final t0 = DateTime(2025, 1, 1, 8);
-      e.feed(t(0, 0, 9.80665), now: t0);
+      e.feedValues(0, 0, 9.80665, now: t0);
       // 回跳
-      final s1 = e.feed(t(0, 0, 9.80665), now: t0.subtract(const Duration(seconds: 3)));
+      final s1 = e.feedValues(0, 0, 9.80665, now: t0.subtract(const Duration(seconds: 3)));
       expect(s1.speedMs, 0);
       // 超长间隔
-      final s2 = e.feed(t(0, 0, 9.80665), now: t0.add(const Duration(seconds: 30)));
+      final s2 = e.feedValues(0, 0, 9.80665, now: t0.add(const Duration(seconds: 30)));
       expect(s2.speedMs, 0);
     });
 

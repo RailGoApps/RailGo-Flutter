@@ -1,6 +1,8 @@
 // test/features/certificate/certificate_repository_test.dart
 //
 // 证件库：SM4 往返 + 门禁强制（红队：绕过门禁必须被拒绝）
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:railgo/core/security/auth_gate.dart';
 import 'package:railgo/core/security/key_service.dart';
@@ -8,9 +10,9 @@ import 'package:railgo/features/certificate/certificate_repository.dart';
 
 class _FixedKey implements Sm4KeySource {
   _FixedKey(this.bytes);
-  final List<int> bytes;
+  final Uint8List bytes;
   @override
-  Future<List<int>> obtain() async => bytes;
+  Future<Uint8List> obtain() async => bytes;
 }
 
 class _FakeGate implements AuthGate {
@@ -57,7 +59,7 @@ void main() {
   test('SM4 加密落库 → 解密还原全部字段（含中文）', () async {
     final repo = CertificateRepository(
       gate: _FakeGate(true),
-      keySource: _FixedKey(List<int>.generate(16, (i) => i)),
+      keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
       storage: _MemStorage(),
     );
     await repo.save(cert);
@@ -74,7 +76,7 @@ void main() {
     final storage = _MemStorage();
     final repo = CertificateRepository(
       gate: _FakeGate(true),
-      keySource: _FixedKey(List<int>.generate(16, (i) => i + 1)),
+      keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i + 1))),
       storage: storage,
     );
     await repo.save(cert);
@@ -86,7 +88,7 @@ void main() {
   test('门禁拒绝 → 读写均抛 GateDeniedException（红队：无绕过路径）', () async {
     final repo = CertificateRepository(
       gate: _FakeGate(false),
-      keySource: _FixedKey(List<int>.generate(16, (i) => i)),
+      keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
       storage: _MemStorage(),
     );
     await expectLater(repo.save(cert), throwsA(isA<GateDeniedException>()));
@@ -94,8 +96,8 @@ void main() {
   });
 
   test('密钥错误 → 解密抛 FormatException 而非泄漏乱码', () {
-    final k1 = CertificateCrypto(List<int>.generate(16, (i) => i));
-    final k2 = CertificateCrypto(List<int>.generate(16, (i) => 255 - i));
+    final k1 = CertificateCrypto(Uint8List.fromList(List<int>.generate(16, (i) => i)));
+    final k2 = CertificateCrypto(Uint8List.fromList(List<int>.generate(16, (i) => 255 - i)));
     final payload = k1.encrypt(cert);
     expect(() => k2.decrypt(payload), throwsFormatException);
   });
