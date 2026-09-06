@@ -325,6 +325,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # 仓库仅含 Dart 层（平台目录不入库），构建前生成 Android 壳
+      - name: Generate Android platform shell
+        run: |
+          flutter create --platforms=android --org com.azstudio --project-name railgo .
+          # local_auth 硬性要求：minSdk 23 + FlutterFragmentActivity（README 同款补丁）
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/; s/minSdk = flutter.minSdkVersion/minSdk = 23/' android/app/build.gradle*
+          MAIN_KT=$(find android/app/src/main -name 'MainActivity.kt' | head -1)
+          sed -i 's/io\.flutter\.embedding\.android\.FlutterActivity/io.flutter.embedding.android.FlutterFragmentActivity/' "$MAIN_KT"
+
       # Application id: com.azstudio.railgo (android/app/build.gradle(.kts))
       - name: Build release APK (obfuscated)
         run: flutter build apk --release --obfuscate --split-debug-info=build/symbols
@@ -372,6 +381,13 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      # 仓库仅含 Dart 层，构建前生成 iOS 壳 + 隐私描述（基线：定位用于测速）
+      - name: Generate iOS platform shell
+        run: |
+          flutter create --platforms=ios --org com.azstudio --project-name railgo .
+          /usr/libexec/PlistBuddy -c 'Add :NSFaceIDUsageDescription string 用于证件库生物识别解锁' ios/Runner/Info.plist || true
+          /usr/libexec/PlistBuddy -c 'Add :NSLocationWhenInUseUsageDescription string 用于测速功能' ios/Runner/Info.plist || true
 
       # Unsigned release build (无签名产物，供侧载 sideloading 或企业重签
       # enterprise re-signing)。Bundle id: com.azstudio.railgo

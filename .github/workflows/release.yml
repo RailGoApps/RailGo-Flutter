@@ -74,6 +74,20 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # 仓库仅含 Dart 层，构建前按矩阵生成平台壳（含 local_auth 补丁）
+      - name: Generate platform shell
+        run: |
+          if [ "${{ matrix.label }}" = "ios-unsigned" ]; then
+            flutter create --platforms=ios --org com.azstudio --project-name railgo .
+            /usr/libexec/PlistBuddy -c 'Add :NSFaceIDUsageDescription string 用于证件库生物识别解锁' ios/Runner/Info.plist || true
+            /usr/libexec/PlistBuddy -c 'Add :NSLocationWhenInUseUsageDescription string 用于测速功能' ios/Runner/Info.plist || true
+          else
+            flutter create --platforms=android --org com.azstudio --project-name railgo .
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/; s/minSdk = flutter.minSdkVersion/minSdk = 23/' android/app/build.gradle*
+            MAIN_KT=$(find android/app/src/main -name 'MainActivity.kt' | head -1)
+            sed -i 's/io\.flutter\.embedding\.android\.FlutterActivity/io.flutter.embedding.android.FlutterFragmentActivity/' "$MAIN_KT"
+          fi
+
       # Application id: com.azstudio.railgo (Android + iOS)
       - name: Build Android APK (release, obfuscated)
         if: matrix.label == 'android-apk'
