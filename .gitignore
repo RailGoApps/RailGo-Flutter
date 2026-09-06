@@ -21,6 +21,9 @@ build/
 coverage/
 lcov.info
 
+# ===== gen-l10n 生成物（flutter: generate: true 时 CI/本地自动生成） =====
+lib/core/l10n/app_localization*.dart
+
 # ===== 遗留 uni-app 工程（仅本地 Phase 4 对照参考，不上传） =====
 .hbuilderx/
 .iflow/
