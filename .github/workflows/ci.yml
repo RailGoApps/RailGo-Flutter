@@ -332,7 +332,9 @@ jobs:
           # local_auth 硬性要求：minSdk 23 + FlutterFragmentActivity（README 同款补丁）
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/; s/minSdk = flutter.minSdkVersion/minSdk = 23/' android/app/build.gradle*
           MAIN_KT=$(find android/app/src/main -name 'MainActivity.kt' | head -1)
-          sed -i 's/io\.flutter\.embedding\.android\.FlutterActivity/io.flutter.embedding.android.FlutterFragmentActivity/' "$MAIN_KT"
+          # 3.27 模板为 import + 短名两处引用，需同时替换
+          sed -i -e 's/io\.flutter\.embedding\.android\.FlutterActivity/io.flutter.embedding.android.FlutterFragmentActivity/g' -e 's/: FlutterActivity()/: FlutterFragmentActivity()/g' "$MAIN_KT"
+          grep -n 'Activity' "$MAIN_KT" || true
 
       # Application id: com.azstudio.railgo (android/app/build.gradle(.kts))
       - name: Build release APK (obfuscated)
