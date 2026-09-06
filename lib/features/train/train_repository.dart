@@ -96,7 +96,7 @@ class TrainRepository {
     }
 
     // V1 补全（交路 + distance/speed）——失败静默
-    Map<String, Map<String, dynamic>> v1Map = {};
+    final Map<String, Map<String, dynamic>> v1Map = {};
     var v1Failed = false;
     List<dynamic> diagram = [];
     var diagramType = '';
@@ -162,7 +162,9 @@ class TrainRepository {
     final rows = await db.rawQuery(
       "SELECT * FROM trains WHERE number='${trainNum.replaceAll("'", "''")}'",
     );
-    if (rows.isEmpty) throw TrainNotFoundException(trainNum);
+    if (rows.isEmpty) {
+      throw TrainNotFoundException(trainNum);
+    }
     final t = TrainRow.fromMap(rows.first);
     final numberFull = t.numberFull.cast<String>();
     return TrainDetail(

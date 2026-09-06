@@ -6,8 +6,8 @@ void main() {
   group('同站换乘', () {
     test('间隔 < 20min → 换乘紧张', () {
       final a = evaluateTransfer(
-        const TripLeg(trainNum: 'G101', departureStation: '北京南', arrivalStation: '上海虹桥', departAbsMinutes: 390, arriveAbsMinutes: 684, arriveDay: 0),
-        const TripLeg(trainNum: 'G2', departureStation: '上海虹桥', arrivalStation: '杭州东', departAbsMinutes: 703, arriveAbsMinutes: 800, departDay: 0),
+        const TripLeg(trainNum: 'G101', departureStation: '北京南', arrivalStation: '上海虹桥', departAbsMinutes: 390, arriveAbsMinutes: 684),
+        const TripLeg(trainNum: 'G2', departureStation: '上海虹桥', arrivalStation: '杭州东', departAbsMinutes: 703, arriveAbsMinutes: 800),
       );
       expect(a.type, TransferType.sameStation);
       expect(a.gapMinutes, 19);
@@ -56,8 +56,8 @@ void main() {
   group('同车接续（车次号相同+到达日==出发日）', () {
     test('命中 → 到站前 10min 提示换座', () {
       final a = evaluateTransfer(
-        const TripLeg(trainNum: 'G1202', departureStation: 'A', arrivalStation: 'B', departAbsMinutes: 300, arriveAbsMinutes: 600, arriveDay: 0),
-        const TripLeg(trainNum: 'G1202', departureStation: 'B', arrivalStation: 'C', departAbsMinutes: 660, arriveAbsMinutes: 800, departDay: 0),
+        const TripLeg(trainNum: 'G1202', departureStation: 'A', arrivalStation: 'B', departAbsMinutes: 300, arriveAbsMinutes: 600),
+        const TripLeg(trainNum: 'G1202', departureStation: 'B', arrivalStation: 'C', departAbsMinutes: 660, arriveAbsMinutes: 800),
       );
       expect(a.type, TransferType.sameTrain);
       expect(a.message, '同车接续，请确认是否需要换座');
@@ -65,7 +65,7 @@ void main() {
     });
     test('到达日≠出发日 → 退化为同站换乘', () {
       final a = evaluateTransfer(
-        const TripLeg(trainNum: 'G1202', departureStation: 'A', arrivalStation: 'B', departAbsMinutes: 300, arriveAbsMinutes: 600, arriveDay: 0),
+        const TripLeg(trainNum: 'G1202', departureStation: 'A', arrivalStation: 'B', departAbsMinutes: 300, arriveAbsMinutes: 600),
         const TripLeg(trainNum: 'G1202', departureStation: 'B', arrivalStation: 'C', departAbsMinutes: 660, arriveAbsMinutes: 800, departDay: 1),
       );
       expect(a.type, TransferType.sameStation);

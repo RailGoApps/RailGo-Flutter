@@ -183,7 +183,6 @@ class TripRepository {
               arrivalStation: next.stops.last.station,
               departAbsMinutes: nextDepart,
               arriveAbsMinutes: 0,
-              departDay: 0,
             ),
             cityOf: cityOf,
             maxTransferHours: maxTransferHours,

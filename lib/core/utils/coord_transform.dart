@@ -118,10 +118,18 @@ class MapLineData {
   var minLng = double.infinity, maxLng = double.negativeInfinity;
   var minLat = double.infinity, maxLat = double.negativeInfinity;
   void include(double lng, double lat) {
-    if (lng < minLng) minLng = lng;
-    if (lng > maxLng) maxLng = lng;
-    if (lat < minLat) minLat = lat;
-    if (lat > maxLat) maxLat = lat;
+    if (lng < minLng) {
+      minLng = lng;
+    }
+    if (lng > maxLng) {
+      maxLng = lng;
+    }
+    if (lat < minLat) {
+      minLat = lat;
+    }
+    if (lat > maxLat) {
+      maxLat = lat;
+    }
   }
 
   for (final s in d.stations) {

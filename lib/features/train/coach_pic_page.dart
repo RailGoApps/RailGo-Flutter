@@ -41,7 +41,9 @@ class _CoachPicPageState extends State<CoachPicPage> {
           final d = r.data;
           if (d != null && d['success'] == true && d['data'] is Map) {
             final url = (d['data'] as Map)['image_url'] ?? (d['data'] as Map)['url'];
-            if (mounted && url != null) setState(() => _officialUrl = url.toString());
+            if (mounted && url != null) {
+              setState(() => _officialUrl = url.toString());
+            }
           }
         } on Exception {
           // 静默降级

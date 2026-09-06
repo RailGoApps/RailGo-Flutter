@@ -53,7 +53,7 @@ final apiClientProvider = Provider<RailGoApiClient>((ref) {
   return RailGoApiClient(
     resolveBase: (code) => settings.serviceSource(code) ?? '',
     // WAF 合规（llms.txt 2026.08.08 限速）：全局令牌桶 2 rps / 突发 4
-    bucket: TokenBucket(ratePerSecond: 2, burst: 4),
+    bucket: TokenBucket(), // 默认即 2 rps / 突发 4（WAF 合规，见 rate_limiter.dart）
   );
 });
 

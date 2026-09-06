@@ -66,6 +66,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # synthetic-package: false 时 pub get 不生成本地化代码，必须显式执行
+      - name: Generate localizations (gen-l10n)
+        run: flutter gen-l10n
+
       # 本地无 Flutter SDK：CI 负责格式化并自动回写（保持门禁：格式漂移即产生
       # style 提交，后续 run 即为已格式化状态）
       - name: Apply dart formatting (write mode)
@@ -104,6 +108,9 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Generate localizations (gen-l10n)
+        run: flutter gen-l10n
 
       - name: Run unit tests with coverage
         run: flutter test --coverage

@@ -91,7 +91,7 @@ class Sm4Engine {
   }
 
   Uint8List _runBlock(List<int> block, {required bool decrypt}) {
-    var x = <int>[
+    final x = <int>[
       (block[0] << 24) | (block[1] << 16) | (block[2] << 8) | block[3], //
       (block[4] << 24) | (block[5] << 16) | (block[6] << 8) | block[7],
       (block[8] << 24) | (block[9] << 16) | (block[10] << 8) | block[11],

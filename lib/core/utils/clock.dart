@@ -25,7 +25,7 @@ enum ClockEvent { reanchored }
 
 class TrustworthyClock implements AppClock {
   TrustworthyClock({AppClock? wallClock, this.driftTolerance = const Duration(seconds: 90), DateTime? initial})
-      : _wall = wallClock ?? SystemClock() {
+      : _wall = wallClock ?? const SystemClock() {
     _anchorWall = initial ?? _wall.now();
     _mono = Stopwatch()..start();
   }

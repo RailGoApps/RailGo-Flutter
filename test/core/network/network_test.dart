@@ -27,7 +27,7 @@ void main() {
             {'desc': '镜像', 'url': 'https://mirror.example'},
           ]
         },
-        {'station': []},
+        {'station': <dynamic>[]},
       ]);
       expect(parsed['train']!.length, 2);
       expect(parsed['train']!.first.url, 'https://data.railgo.zenglingkun.cn');
