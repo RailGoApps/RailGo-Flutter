@@ -119,6 +119,10 @@
 
 8.4 与授权相关的一切事宜，请联系 **services@railgo.dev**。
 
+## 第九条 无隶属关系声明
+
+本软件非官方软件，与中国国家铁路集团总公司、中国铁道科学研究院集团有限公司等铁路运营企业及其下级企业单位无任何隶属关系。
+
 ---
 
 **Copyright (c) 2025-present RailGo Contributors. 保留所有权利（All Rights Reserved）。**
