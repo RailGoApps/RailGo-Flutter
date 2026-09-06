@@ -28,13 +28,11 @@ UiFlavor inferFlavor(TargetPlatform platform) {
 
 /// Apple 弹簧参数（apple-design 技能：Move 1.0/0.4s；Drawer/Sheet 0.8/0.3s）
 SpringDescription get kAppleSpringDefault => SpringDescription.withDampingRatio(
-      mass: 1,
       stiffness: 400,
       ratio: 1.0,
     );
 
 SpringDescription get kAppleSpringSheet => SpringDescription.withDampingRatio(
-      mass: 1,
       stiffness: 400,
       ratio: 0.8,
     );

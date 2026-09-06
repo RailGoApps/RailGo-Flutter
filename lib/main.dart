@@ -69,12 +69,10 @@ class RailGoApp extends ConsumerWidget {
       title: 'RailGo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: seed),
         fontFamily: 'DIN1451',
       ),
       darkTheme: ThemeData(
-        useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark),
         fontFamily: 'DIN1451',
       ),

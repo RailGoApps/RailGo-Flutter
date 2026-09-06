@@ -37,7 +37,7 @@ void main() {
     test('脏数据容错：非 Map 项/缺 url 跳过', () {
       final parsed = parseServiceEndpoints([
         'not-a-map',
-        {'x': [{'desc': 1, 'url': null}, 'junk', {'url': 'https://ok'}]},
+        {'x': <dynamic>[{'desc': 1, 'url': null}, 'junk', {'url': 'https://ok'}]},
       ]);
       expect(parsed['x']!.length, 1);
       expect(parsed['x']!.first.url, 'https://ok');

@@ -14,6 +14,7 @@ import '../../core/security/auth_gate.dart';
 import '../../core/security/key_service.dart';
 import '../../core/storage/settings_store.dart';
 import '../../main.dart';
+import '../oobe/eggs.dart';
 import '../../widgets/platform_adapter.dart';
 import '../../widgets/train_keyboard.dart';
 import '../certificate/certificate_repository.dart';

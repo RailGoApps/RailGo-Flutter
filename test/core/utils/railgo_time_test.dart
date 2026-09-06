@@ -66,7 +66,7 @@ void main() {
 
   group('Asia/Shanghai 强制时区', () {
     test('UTC → 上海 +8', () {
-      final t = nowShanghai(utcNow: DateTime.utc(2025, 6, 1, 16, 0));
+      final t = nowShanghai(utcNow: DateTime.utc(2025, 6, 1, 16));
       expect(t.year, 2025);
       expect(t.month, 6);
       expect(t.day, 2);
@@ -75,7 +75,7 @@ void main() {
     test('ymdShanghai 格式 yyyymmdd', () {
       final s = ymdShanghai(DateTime.utc(2025, 6, 1, 15, 59));
       expect(s, '20250601');
-      final s2 = ymdShanghai(DateTime.utc(2025, 6, 1, 16, 0));
+      final s2 = ymdShanghai(DateTime.utc(2025, 6, 1, 16));
       expect(s2, '20250602');
     });
   });

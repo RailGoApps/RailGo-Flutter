@@ -57,7 +57,7 @@ class TrainRow {
 }
 
 /// 纯函数：构造车次号 LIKE 预查 SQL（基线 train/query.vue 离线分支语义）
-/// 数字开头 → 同时匹配 "_<kw>" 与 "<kw>"（复车次下划线变体）；否则模糊匹配。
+/// 数字开头 → 同时匹配 `"_<kw>"` 与 `"<kw>"`（复车次下划线变体）；否则模糊匹配。
 List<String> buildTrainPreselectSql(String keyword) {
   final kw = keyword.trim();
   if (kw.isEmpty) return const [];

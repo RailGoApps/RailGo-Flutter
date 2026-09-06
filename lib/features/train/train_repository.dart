@@ -164,6 +164,7 @@ class TrainRepository {
     );
     if (rows.isEmpty) throw TrainNotFoundException(trainNum);
     final t = TrainRow.fromMap(rows.first);
+    final numberFull = t.numberFull.cast<String>();
     return TrainDetail(
       trainNum: trainNum,
       bureau: '',
@@ -171,8 +172,8 @@ class TrainRepository {
       car: t.car,
       carOwner: '',
       runner: t.runner,
-      numberFull: t.numberFull.cast<String>(),
-      numberKind: t.numberFull.isNotEmpty ? t.numberFull.first[0] : '',
+      numberFull: numberFull,
+      numberKind: numberFull.isNotEmpty ? numberFull.first[0] : '',
       rundays: const [],
       spend: 0,
       stops: [

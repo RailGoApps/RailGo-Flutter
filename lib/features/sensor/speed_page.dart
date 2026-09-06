@@ -105,11 +105,11 @@ class _SpeedPageState extends State<SpeedPage> {
                     alignment: Alignment.topRight,
                     children: [
                       if (assistActive)
-                        Padding(
-                          padding: const EdgeInsets.all(8),
+                        const Padding(
+                          padding: EdgeInsets.all(8),
                           child: Chip(
-                            avatar: const Icon(Icons.satellite_alt_outlined, size: 16),
-                            label: const Text('卫星信号弱', style: TextStyle(fontSize: 11)),
+                            avatar: Icon(Icons.satellite_alt_outlined, size: 16),
+                            label: Text('卫星信号弱', style: TextStyle(fontSize: 11)),
                             visualDensity: VisualDensity.compact,
                           ),
                         ),

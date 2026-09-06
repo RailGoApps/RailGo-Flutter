@@ -51,7 +51,7 @@ double _transformLng(double x, double y) {
 /// GCJ-02 → WGS-84（一次反向迭代精化，误差 < 1e-6 度量级）
 (double wgsLat, double wgsLng) gcj02ToWgs84(double gcjLat, double gcjLng) {
   if (outOfChina(gcjLng, gcjLat)) return (gcjLat, gcjLng);
-  var (dLat, dLng) = _delta(gcjLng, gcjLat);
+  final (dLat, dLng) = _delta(gcjLng, gcjLat);
   var wgsLat = gcjLat - dLat;
   var wgsLng = gcjLng - dLng;
   // 精化一轮

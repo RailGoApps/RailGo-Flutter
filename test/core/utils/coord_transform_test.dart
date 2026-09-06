@@ -57,7 +57,7 @@ void main() {
       final data = MapLineData.parseGCJ({});
       expect(data.stations, isEmpty);
       expect(data.segments, isEmpty);
-      final data2 = MapLineData.parseGCJ({'stations': ['junk', {}], 'train': 'bad'});
+      final data2 = MapLineData.parseGCJ({'stations': ['junk', <String, dynamic>{}], 'train': 'bad'});
       expect(data2.stations, isEmpty);
     });
   });

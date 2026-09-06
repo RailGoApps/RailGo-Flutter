@@ -108,7 +108,7 @@ class CertificateRepository {
     final key = await keySource.obtain();
     final crypto = CertificateCrypto(key);
     final payloads = await storage.loadAll();
-    return payloads.map((p) => crypto.decrypt(p)).toList(growable: false);
+    return payloads.map(crypto.decrypt).toList(growable: false);
   }
 
   /// 新增/编辑证件（触发门禁；成功后以密文落库）

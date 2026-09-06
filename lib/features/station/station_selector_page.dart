@@ -85,7 +85,7 @@ class _StationSelectorPageState extends State<StationSelectorPage> {
       if (widget.settings.mode == AppMode.network) {
         final resp = await widget.api.stationPreselect(kw);
         final data = (resp.data ?? <dynamic>[])
-            .whereType<Map>()
+            .whereType<Map<String, dynamic>>()
             .map((m) => _StationItem(
                   name: (m['name'] ?? '') as String,
                   telecode: (m['telecode'] ?? '') as String,
@@ -105,7 +105,6 @@ class _StationSelectorPageState extends State<StationSelectorPage> {
                   name: r['name'] as String? ?? '',
                   telecode: r['telecode'] as String? ?? '',
                   pinyinTriple: r['pinyinTriple'] as String? ?? '',
-                  types: const [],
                 ))
             .toList());
       }

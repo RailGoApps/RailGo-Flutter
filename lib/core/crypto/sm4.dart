@@ -80,7 +80,7 @@ class Sm4Engine {
       (key[8] << 24) | (key[9] << 16) | (key[10] << 8) | key[11],
       (key[12] << 24) | (key[13] << 16) | (key[14] << 8) | key[15],
     ];
-    var k = <int>[mk[0] ^ _kFk[0], mk[1] ^ _kFk[1], mk[2] ^ _kFk[2], mk[3] ^ _kFk[3]];
+    final k = <int>[mk[0] ^ _kFk[0], mk[1] ^ _kFk[1], mk[2] ^ _kFk[2], mk[3] ^ _kFk[3]];
     final rks = List<int>.filled(32, 0);
     for (var i = 0; i < 32; i++) {
       final rk = k[i] ^ _tKey(k[i + 1] ^ k[i + 2] ^ k[i + 3] ^ _kCk[i]);
@@ -241,7 +241,9 @@ class Sm4Cipher {
   String decryptStringFromBase64(String b64) => utf8.decode(decrypt(base64Decode(b64)));
 
   static Uint8List hexToBytes(String hex) {
-    if (hex.length % 2 != 0) throw const FormatException('hex length must be even');
+    if (hex.length % 2 != 0) {
+      throw const FormatException('hex length must be even');
+    }
     final out = Uint8List(hex.length ~/ 2);
     for (var i = 0; i < out.length; i++) {
       out[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);

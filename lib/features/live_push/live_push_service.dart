@@ -45,9 +45,10 @@ class NotificationLivePushBackend implements LivePushBackend {
       const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosInit = DarwinInitializationSettings();
       _ready = await _plugin.initialize(
-        const InitializationSettings(android: androidInit, iOS: iosInit),
-      );
-      return _ready ?? false;
+            const InitializationSettings(android: androidInit, iOS: iosInit),
+          ) ??
+          false;
+      return _ready;
     } catch (_) {
       return false;
     }

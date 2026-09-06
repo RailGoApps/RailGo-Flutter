@@ -87,7 +87,7 @@ class _RouteLinePainter extends CustomPainter {
         style: TextStyle(fontSize: 10, color: primary, fontWeight: FontWeight.w600),
       );
       tp.layout();
-      tp.paint(canvas, o + const Offset(7, -tp.height / 2));
+      tp.paint(canvas, o + Offset(7, -tp.height / 2));
     }
   }
 

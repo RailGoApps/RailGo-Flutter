@@ -79,8 +79,8 @@ void main() {
 
     test('CBC 相同明文不同 IV 密文不同（语义安全基础）', () {
       final plain = utf8.encode('RailGo SM4 CBC 测试数据');
-      final c1 = Sm4Cipher(Sm4Engine(key), mode: Sm4Mode.cbc, iv: Uint8List.fromList(List.filled(16, 0)));
-      final c2 = Sm4Cipher(Sm4Engine(key), mode: Sm4Mode.cbc, iv: Uint8List.fromList(List.filled(16, 1)));
+      final c1 = Sm4Cipher(Sm4Engine(key), iv: Uint8List.fromList(List.filled(16, 0)));
+      final c2 = Sm4Cipher(Sm4Engine(key), iv: Uint8List.fromList(List.filled(16, 1)));
       final e1 = c1.encrypt(plain);
       final e2 = c2.encrypt(plain);
       expect(e1, isNot(equals(e2)));
@@ -98,10 +98,10 @@ void main() {
     });
 
     test('CBC 头 16 字节为 IV，可跨实例解密', () {
-      final cEnc = Sm4Cipher(Sm4Engine(key), mode: Sm4Mode.cbc);
+      final cEnc = Sm4Cipher(Sm4Engine(key));
       final enc = cEnc.encrypt(utf8.encode('跨实例解密'));
       final iv = Uint8List.fromList(enc.sublist(0, 16));
-      final cDec = Sm4Cipher(Sm4Engine(key), mode: Sm4Mode.cbc, iv: iv);
+      final cDec = Sm4Cipher(Sm4Engine(key), iv: iv);
       expect(cDec.decrypt(enc), utf8.encode('跨实例解密'));
     });
   });

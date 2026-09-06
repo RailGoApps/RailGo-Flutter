@@ -114,12 +114,10 @@ class TripStateMachine {
       final stop = timetable.stops[i];
       final arrive = _absArrive(stop);
       final depart = _absDepart(stop);
-      final prevDepart = _absDepart(timetable.stops[i - 1]) ?? _absArrive(timetable.stops[i - 1]);
 
       if (arrive != null && nowMinutes < arrive) {
-        // 运行区间 (prevDepart, arrive)
+        // 运行区间：距下一站到站
         final remain = arrive - nowMinutes;
-        final isTerminal = i == timetable.stops.length - 1;
         if (remain > kArrivingWindow.inMinutes) {
           return TripStatus(
             phase: TripPhase.nextStation,

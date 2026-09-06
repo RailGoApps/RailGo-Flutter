@@ -7,7 +7,6 @@ library;
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../network/api_client.dart';
 import '../network/railgo_api.dart';
 
 class AuthService {
@@ -47,9 +46,9 @@ class AuthService {
       // 网络异常 → 72h 宽限判定
       final last = lastAuthTime;
       if (last != null && DateTime.now().difference(last) < offlineGrace) {
-        return AuthCheckResult(true, AuthSource.graceOffline);
+        return const AuthCheckResult(true, AuthSource.graceOffline);
       }
-      return AuthCheckResult(false, AuthSource.networkError);
+      return const AuthCheckResult(false, AuthSource.networkError);
     }
   }
 

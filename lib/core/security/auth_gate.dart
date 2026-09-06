@@ -85,7 +85,9 @@ class LocalAuthGate implements AuthGate {
       final can = await _la.canCheckBiometrics || await _la.isDeviceSupported();
       if (can) {
         final ok = await _la.authenticate(localizedReason: reason);
-        if (ok) return const GateResult(passed: true, method: GateMethod.biometric);
+        if (ok) {
+          return const GateResult(passed: true, method: GateMethod.biometric);
+        }
         // 生物识别失败 → 返回 denied，由 UI 走 PIN 收集 → verifyPin
       }
     } catch (_) {

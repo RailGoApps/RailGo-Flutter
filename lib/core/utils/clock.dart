@@ -15,6 +15,8 @@ abstract class AppClock {
 }
 
 class SystemClock implements AppClock {
+  const SystemClock();
+
   @override
   DateTime now() => DateTime.now();
 }

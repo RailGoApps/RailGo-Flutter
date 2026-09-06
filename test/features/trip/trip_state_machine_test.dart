@@ -83,7 +83,7 @@ void main() {
   });
 
   group('跨日行程（夜车）', () {
-    final night = const TripTimetable(
+    const night = TripTimetable(
       trainNum: 'Z98',
       stops: [
         TripStop(station: 'A', telecode: 'AAA', depart: '22:00'),
@@ -108,7 +108,7 @@ void main() {
 
   group('脏数据防御（红队：不得死循环/崩溃）', () {
     test('中间站缺 arrive → 以 depart 为界回退 nextStation', () {
-      final dirty = const TripTimetable(
+      const dirty = TripTimetable(
         trainNum: 'K0000',
         stops: [
           TripStop(station: 'A', telecode: 'AAA', depart: '08:00'),
@@ -126,7 +126,7 @@ void main() {
       expect(s.nextChangeAtMinutes, isNull);
     });
     test('全部时刻缺失的站不阻塞推进', () {
-      final weird = const TripTimetable(
+      const weird = TripTimetable(
         trainNum: 'X',
         stops: [
           TripStop(station: 'A', telecode: 'AAA', depart: '08:00'),

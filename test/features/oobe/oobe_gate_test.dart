@@ -37,7 +37,7 @@ class _FakeSettings implements SettingsStore {
 
 void main() {
   test('oobe 未完成 → welcome', () {
-    expect(resolveOobeRoute(_FakeSettings(oobe: false)), OobeRoute.welcome);
+    expect(resolveOobeRoute(_FakeSettings()), OobeRoute.welcome);
   });
 
   test('oobe 完成但服务源缺失 → serviceSource', () {

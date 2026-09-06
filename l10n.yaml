@@ -3,3 +3,6 @@ template-arb-file: app_zh.arb
 output-localization-file: app_localizations.dart
 output-class: AppLocalizations
 nullable-getter: false
+# Flutter 3.27 默认仍为 synthetic package（生成到 .dart_tool/flutter_gen），
+# 显式关闭以生成真实文件到 lib/core/l10n/（与代码 import 路径一致；3.32+ 将强制此行为）
+synthetic-package: false

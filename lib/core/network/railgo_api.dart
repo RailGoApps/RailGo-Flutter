@@ -135,7 +135,7 @@ class RailGoApi {
   Future<Response<List<dynamic>>> iconCatalog() =>
       _client.get<List<dynamic>>(ServiceCode.icon, '/api/v2/cc');
 
-  /// 卡密鉴权：center.zenglingkun.cn/beta/api/check/<ver>?userid=&key=
+  /// 卡密鉴权：`center.zenglingkun.cn/beta/api/check/<ver>?userid=&key=`
   /// （72h 离线宽限逻辑在 core/security/auth_service.dart）
   Future<Response<Map<String, dynamic>>> checkAuth({
     required String version,

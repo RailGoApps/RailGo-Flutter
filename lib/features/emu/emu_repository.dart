@@ -33,10 +33,12 @@ class EmuRepository {
   Future<List<EmuRunRecord>> runQuery(String keyword) async {
     final resp = await _api.emuRun(keyword);
     final data = resp.data;
-    if (data == null || data['success'] != true) return const [];
+    if (data == null || data['success'] != true) {
+      return const [];
+    }
     final list = (data['data'] as List<dynamic>? ?? []);
     return list
-        .whereType<Map>()
+        .whereType<Map<String, dynamic>>()
         .map((m) => EmuRunRecord(
               trainNum: (m['train'] ?? m['trainNum'] ?? '').toString(),
               date: (m['date'] ?? '').toString(),
@@ -51,10 +53,12 @@ class EmuRepository {
     final type = RegExp(r'^\d+$').hasMatch(keyword) ? EmuKeywordType.number : EmuKeywordType.model;
     final resp = await _api.emuAssignmentPre(keyword, keywordType: type.name[0].toUpperCase() + type.name.substring(1));
     final data = resp.data;
-    if (data == null || data['success'] != true) return (items: const <EmuAssignment>[], total: 0);
+    if (data == null || data['success'] != true) {
+      return (items: const <EmuAssignment>[], total: 0);
+    }
     final list = (data['data'] as List<dynamic>? ?? []);
     final items = list
-        .whereType<Map>()
+        .whereType<Map<String, dynamic>>()
         .map((m) => EmuAssignment(
               id: (m['id'] ?? m['emu'] ?? '').toString(),
               model: (m['model'] ?? '').toString(),
