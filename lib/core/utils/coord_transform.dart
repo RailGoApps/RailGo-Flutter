@@ -43,14 +43,18 @@ double _transformLng(double x, double y) {
 
 /// WGS-84 → GCJ-02
 (double gcjLat, double gcjLng) wgs84ToGcj02(double wgsLat, double wgsLng) {
-  if (outOfChina(wgsLng, wgsLat)) return (wgsLat, wgsLng);
+  if (outOfChina(wgsLng, wgsLat)) {
+    return (wgsLat, wgsLng);
+  }
   final (dLat, dLng) = _delta(wgsLng, wgsLat);
   return (wgsLat + dLat, wgsLng + dLng);
 }
 
 /// GCJ-02 → WGS-84（一次反向迭代精化，误差 < 1e-6 度量级）
 (double wgsLat, double wgsLng) gcj02ToWgs84(double gcjLat, double gcjLng) {
-  if (outOfChina(gcjLng, gcjLat)) return (gcjLat, gcjLng);
+  if (outOfChina(gcjLng, gcjLat)) {
+    return (gcjLat, gcjLng);
+  }
   final (dLat, dLng) = _delta(gcjLng, gcjLat);
   var wgsLat = gcjLat - dLat;
   var wgsLng = gcjLng - dLng;
@@ -140,7 +144,9 @@ class MapLineData {
       include(p.lng, p.lat);
     }
   }
-  if (minLng == double.infinity) return (minLng: 0, maxLng: 1, minLat: 0, maxLat: 1);
+  if (minLng == double.infinity) {
+    return (minLng: 0, maxLng: 1, minLat: 0, maxLat: 1);
+  }
   return (minLng: minLng, maxLng: maxLng, minLat: minLat, maxLat: maxLat);
 }
 

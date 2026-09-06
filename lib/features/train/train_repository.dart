@@ -158,7 +158,9 @@ class TrainRepository {
   /// 离线链路（SQLite 直查）
   Future<TrainDetail> fetchOffline(String trainNum) async {
     final db = offlineDb;
-    if (db == null) throw const TrainNotFoundException('offline-db-unavailable');
+    if (db == null) {
+      throw const TrainNotFoundException('offline-db-unavailable');
+    }
     final rows = await db.rawQuery(
       "SELECT * FROM trains WHERE number='${trainNum.replaceAll("'", "''")}'",
     );

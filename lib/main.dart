@@ -13,18 +13,13 @@ import 'core/l10n/app_localizations.dart';
 import 'core/network/api_client.dart';
 import 'core/network/railgo_api.dart';
 import 'core/network/rate_limiter.dart';
-import 'core/security/auth_gate.dart';
-import 'core/security/key_service.dart';
 import 'core/storage/settings_store.dart';
 import 'core/utils/clock.dart';
-import 'features/certificate/certificate_repository.dart';
-import 'features/certificate/certificates_page.dart';
 import 'features/home/home_page.dart';
 import 'features/sensor/speed_page.dart';
 import 'features/oobe/doc_page.dart';
 import 'features/oobe/eggs.dart';
 import 'features/oobe/update_page.dart';
-import 'features/station/station_selector_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

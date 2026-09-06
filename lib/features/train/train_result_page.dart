@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/app_localizations.dart';
-import '../../core/network/railgo_api.dart';
 import '../../core/utils/coord_transform.dart';
 import '../../core/utils/railgo_time.dart';
 import '../../main.dart';

@@ -59,7 +59,7 @@ class Certificate {
 
 /// 纯加解密（无 IO，可单测）：Certificate ⇄ 加密 Base64 载荷
 class CertificateCrypto {
-  CertificateCrypto(this._keyBytes);
+  const CertificateCrypto(this._keyBytes);
 
   final List<int> _keyBytes;
 

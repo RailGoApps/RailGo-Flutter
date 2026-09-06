@@ -16,12 +16,10 @@ class _FixedKey implements Sm4KeySource {
 }
 
 class _FakeGate implements AuthGate {
-  _FakeGate(this.willPass);
+  const _FakeGate(this.willPass);
   final bool willPass;
-  int asked = 0;
   @override
   Future<GateResult> requireUnlock({String reason = ''}) async {
-    asked++;
     return GateResult(passed: willPass, method: willPass ? GateMethod.biometric : GateMethod.denied);
   }
 
@@ -37,7 +35,7 @@ class _FakeGate implements AuthGate {
 }
 
 class _MemStorage implements CertificateStorage {
-  const _MemStorage();
+  _MemStorage();
   final Map<String, String> db = {};
   @override
   Future<List<String>> loadAll() async => db.values.toList();
@@ -59,9 +57,9 @@ void main() {
 
   test('SM4 加密落库 → 解密还原全部字段（含中文）', () async {
     final repo = CertificateRepository(
-      gate: _FakeGate(true),
+      gate: const _FakeGate(true),
       keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
-      storage: const _MemStorage(),
+      storage: _MemStorage(),
     );
     await repo.save(cert);
     final all = await repo.unlockAll();
@@ -76,7 +74,7 @@ void main() {
   test('存储中绝无明文（号码/姓名不可被直接 grep）', () async {
     final storage = _MemStorage();
     final repo = CertificateRepository(
-      gate: _FakeGate(true),
+      gate: const _FakeGate(true),
       keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i + 1))),
       storage: storage,
     );
@@ -88,7 +86,7 @@ void main() {
 
   test('门禁拒绝 → 读写均抛 GateDeniedException（红队：无绕过路径）', () async {
     final repo = CertificateRepository(
-      gate: _FakeGate(false),
+      gate: const _FakeGate(false),
       keySource: _FixedKey(Uint8List.fromList(List<int>.generate(16, (i) => i))),
       storage: _MemStorage(),
     );
