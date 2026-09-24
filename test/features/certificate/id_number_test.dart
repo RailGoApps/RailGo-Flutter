@@ -24,9 +24,11 @@ void main() {
     expect(r.warning, contains('校验位'));
   });
 
-  test('末位小写 x 自动归一', () {
-    final r = analyzeCertNumber('ED', '11010119900307775x');
+  test('末位小写 x 自动归一（真实校验位为 X 的号码）', () {
+    // 前 17 位 11010119900307776 的 GB 11643 校验位为 X
+    final r = analyzeCertNumber('ED', '11010119900307776x');
     expect(r.checksumOk, isTrue);
+    expect(r.gender, CertGender.female); // 顺序码末位 6（偶）→ 女
   });
 
   test('一代旧证 15 位：补 19 世纪出生、奇偶性别、无校验位', () {

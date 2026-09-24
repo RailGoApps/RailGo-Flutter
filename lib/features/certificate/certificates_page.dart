@@ -514,7 +514,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
     );
 
     if (ok == 'mrz') {
-      unawaited(_showMrzSheet(context));
+      if (mounted) unawaited(_showMrzSheet(this.context));
       return;
     }
     if (ok != true) return;
@@ -782,8 +782,9 @@ class _CertificatesPageState extends State<CertificatesPage> {
 
     var confirmed = r.allChecksOk;
     if (!confirmed) {
+      if (!mounted) return;
       confirmed = await showDialog<bool>(
-            context: context,
+            context: this.context,
             builder: (context) => AlertDialog(
               title: const Text('校验位不符'),
               content: const Text('机读区可能抄录有误，仍要保存吗？'),
@@ -1070,7 +1071,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
 
   String _mask(String number) {
     if (number.length <= 6) return '******';
-    return number.substring(0, 3) + ' * ' + number.substring(number.length - 3);
+    return '${number.substring(0, 3)} * ${number.substring(number.length - 3)}';
   }
 
   String _fmtYmd(String ymd) => ymd.length == 8

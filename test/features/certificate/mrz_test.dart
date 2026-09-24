@@ -1,5 +1,5 @@
 // MRZ（ICAO 9303）识读：TD1/TD2/TD3 全字段 + 校验位 + 归一化
-// 向量手工构造，校验位按 7-3-1 加权 mod 10 计算验证。
+// 向量手工构造；注意综合校验位按 ICAO 规则对拼接字段【连续】7-3-1 加权。
 import 'package:flutter_test/flutter_test.dart';
 import 'package:railgo/features/certificate/id_number.dart';
 import 'package:railgo/features/certificate/mrz.dart';
@@ -10,20 +10,20 @@ void main() {
   // 护照 TD3（2×44）：E12345678 / CHN / 1990-03-07 / M / 2026-09-30
   final td3 = [
     'P<CHNZHANG<<SAN${'<' * 29}',
-    'E123456782CHN9003071M2609304${'<' * 14}07',
+    'E123456782CHN9003071M2609304${'<' * 14}02',
   ].join('\n');
 
   // ID 卡 TD1（3×30）：同主体
   final td1 = [
     'I<CHNE123456782${'<' * 15}',
-    '9003071M2609304CHN${'<' * 11}7',
+    '9003071M2609304CHN${'<' * 11}2',
     'ZHANG<<SAN${'<' * 20}',
   ].join('\n');
 
   // TD2（2×36）：英国签发（非 CHN ID → QT）
   final td2 = [
     'I<GBRZHANG<<SAN${'<' * 21}',
-    'E123456782GBR9003071M2609304${'<' * 7}7',
+    'E123456782GBR9003071M2609304${'<' * 7}2',
   ].join('\n');
 
   test('TD3 护照：全字段解析 + 全部校验位通过 + 映射 HZ', () {
@@ -78,7 +78,7 @@ void main() {
   });
 
   test('归一化：小写/空格填充/单行连打 88 位', () {
-    final single = td3.toLowerCase().replaceAll('\n', ' ');
+    final single = td3.toLowerCase().replaceAll('\n', '');
     final r = parseMrz(single, now: now);
     expect(r.format, MrzFormat.td3);
     expect(r.documentNumber, 'E12345678');

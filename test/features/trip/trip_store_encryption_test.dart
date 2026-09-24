@@ -23,7 +23,7 @@ class _BrokenKey implements Sm4KeySource {
   }
 }
 
-StoredTrip _trip() => StoredTrip(
+StoredTrip _trip() => const StoredTrip(
       id: 't1',
       trainNum: 'G1234',
       dateYmd: '20260925',
@@ -32,13 +32,11 @@ StoredTrip _trip() => StoredTrip(
           station: '上海虹桥',
           telecode: 'AOH',
           depart: '08:00',
-          day: 0,
         ),
         TripStop(
           station: '北京南',
           telecode: 'VNP',
           arrive: '13:30',
-          day: 0,
         ),
       ],
     );
@@ -69,7 +67,7 @@ void main() {
   });
 
   test('旧明文自动可读 → 下次保存即迁移为密文', () async {
-    final plain =
+    const plain =
         '[{"id":"t1","trainNum":"G1234","date":"20260925","stops":'
         '[{"station":"上海虹桥","telecode":"AOH","arrive":null,'
         '"depart":"08:00","day":0},'

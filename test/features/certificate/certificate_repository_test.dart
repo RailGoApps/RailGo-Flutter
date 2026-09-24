@@ -167,21 +167,21 @@ void main() {
   });
 
   test('一人多证：同名同生日归并；同号不同人告警', () {
-    final id = Certificate(
+    const id = Certificate(
       id: 'a',
       typeCode: 'ED',
       number: '110101199003077758',
       name: '张三',
       birthDate: '19900307',
     );
-    final passport = Certificate(
+    const passport = Certificate(
       id: 'b',
       typeCode: 'HZ',
       number: 'E12345678',
       name: '张三',
       birthDate: '19900307',
     );
-    final other = Certificate(
+    const other = Certificate(
       id: 'c',
       typeCode: 'ED',
       number: '440301199001012345',
@@ -195,7 +195,7 @@ void main() {
     expect(zs.birthDate, '19900307');
 
     // 同一号码挂到第二个"人"名下 → 告警
-    final conflict = Certificate(
+    const conflict = Certificate(
       id: 'd',
       typeCode: 'ED',
       number: '110101199003077758',

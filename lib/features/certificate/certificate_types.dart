@@ -233,7 +233,8 @@ class CertExpiryInfo {
   static const unknownInfo = CertExpiryInfo(status: CertExpiryStatus.unknown);
 }
 
-/// 到期状态计算（当天到期算 expiringSoon；此前 warningDays 内均提醒）
+/// 到期状态计算（按日历日零点对零点：当天到期算 expiringSoon，昨日即 expired；
+/// warningDays 内均提醒）
 CertExpiryInfo certExpiryInfo(
   String? expiryYmd, {
   DateTime? now,
@@ -250,8 +251,7 @@ CertExpiryInfo certExpiryInfo(
   }
   final at = now ?? DateTime.now();
   final today = DateTime(at.year, at.month, at.day);
-  final expiryEndOfDay = DateTime(y, m, d, 23, 59, 59);
-  final days = expiryEndOfDay.difference(today).inDays;
+  final days = DateTime(y, m, d).difference(today).inDays;
   if (days < 0) {
     return CertExpiryInfo(
       status: CertExpiryStatus.expired,
