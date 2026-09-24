@@ -101,7 +101,7 @@ class PrefsTripStorage implements TripStorage {
   @override
   Future<List<StoredTrip>> loadAll() async {
     final raw = _prefs.getString(_kKey);
-    if (raw == null || raw.isEmpty) return const [];
+    if (raw == null || raw.isEmpty) return <StoredTrip>[];
     try {
       // 旧版明文以 '[' 开头；密文为 Base64（透明迁移：下次 saveAll 自动加密）
       final plain = raw.startsWith('[') ? raw : await _decrypt(raw);
@@ -112,7 +112,7 @@ class PrefsTripStorage implements TripStorage {
     } on StateError {
       rethrow; // 密钥源不可用（Keystore 损坏）→ 显式失败，不做"空板"假象
     } catch (_) {
-      return const []; // 损坏 → 空（容灾，勿崩）
+      return <StoredTrip>[]; // 损坏 → 空（容灾，勿崩）
     }
   }
 
@@ -246,13 +246,14 @@ class TripRepository {
   }
 
   Future<void> add(StoredTrip trip) async {
-    final all = await storage.loadAll();
+    // 防御性拷贝：storage 可能返回不可变列表（如 const []），原地 add 会崩
+    final all = [...await storage.loadAll()];
     all.add(trip);
     await storage.saveAll(all);
   }
 
   Future<void> remove(String id) async {
-    final all = await storage.loadAll();
+    final all = [...await storage.loadAll()];
     all.removeWhere((t) => t.id == id);
     await storage.saveAll(all);
   }

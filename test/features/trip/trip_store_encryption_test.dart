@@ -61,7 +61,7 @@ StoredTrip _trip2() => const StoredTrip(
         TripStop(station: '北京南', telecode: 'VNP', depart: '14:30'),
         TripStop(station: '南京南', telecode: 'NKH', arrive: '15:30'),
       ],
-      seat: SeatInfo(carNo: '07', seatNo: '12F', seatClass: SeatClass.second),
+      seat: SeatInfo(carNo: '07', seatNo: '12F'),
     );
 
 void main() {
