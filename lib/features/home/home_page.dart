@@ -27,7 +27,8 @@ final tripRepoProvider = Provider<TripRepository>((ref) {
   final prefs = ref.watch(sharedPrefsProvider);
   final settings = ref.watch(settingsProvider);
   return TripRepository(
-    storage: PrefsTripStorage(prefs),
+    // 行程=出行轨迹 PII：落盘 SM4 加密（密钥 TEE 包装；无交互门禁，保秒开）
+    storage: PrefsTripStorage(prefs, keySource: SecureStorageKeyService()),
     clock: ref.watch(clockProvider),
     maxTransferHours: settings.maxTransferHours,
   );
@@ -265,6 +266,19 @@ class _TripBoard extends ConsumerWidget {
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          // 密钥源不可用（Keystore 损坏等）→ 显式失败，不做"空行程板"假象
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                '行程库解密失败（安全存储不可用）：${snap.error}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          );
         }
         final board = snap.data ?? const <TripWithStatus>[];
         if (board.isEmpty) {

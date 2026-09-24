@@ -61,10 +61,14 @@ class SecureStorageKeyService implements Sm4KeySource {
 
 class Sm4KeyService {
   /// PBKDF2-HMAC-SHA256，100k 轮，盐固定为应用域分隔符+PIN（PIN 即口令，无独立盐存储需求）
-  static Uint8List deriveKeyFromPin(String pin, {int iterations = 100000}) {
+  static Uint8List deriveKeyFromPin(
+    String pin, {
+    int iterations = 100000,
+    String salt = 'railgo.sm4.pin.v1',
+  }) {
     final pbkdf2 = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
       ..init(Pbkdf2Parameters(
-        utf8.encode('railgo.sm4.pin.v1'),
+        utf8.encode(salt),
         iterations,
         16,
       ));

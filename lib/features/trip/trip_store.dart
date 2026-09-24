@@ -1,7 +1,8 @@
 // lib/features/trip/trip_store.dart
 //
 // 行程存储与聚合（基线 route 页语义 + 新状态机/接续能力）：
-//   持久化：shared_preferences JSON 数组（与原项目 storage 行程一致量级）
+//   持久化：shared_preferences + SM4 加密（行程=出行轨迹 PII，防磁盘提取）；
+//           密钥经 SecureStorageKeyService（TEE/Keystore 包装），不设交互门禁
 //   聚合：每趟行程 → TripStateMachine.evaluate + 相邻行程 evaluateTransfer
 library;
 
@@ -9,6 +10,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/crypto/sm4.dart';
+import '../../core/security/key_service.dart';
 import '../../../core/utils/clock.dart';
 import '../../../core/utils/railgo_time.dart';
 import 'transfer_logic.dart';
@@ -87,8 +90,12 @@ abstract class TripStorage {
 }
 
 class PrefsTripStorage implements TripStorage {
-  PrefsTripStorage(this._prefs);
+  /// [keySource] 为 null 时退化为明文（仅测试/极端降级；生产一律注入）
+  PrefsTripStorage(this._prefs, {Sm4KeySource? keySource})
+      : _keySource = keySource;
+
   final SharedPreferences _prefs;
+  final Sm4KeySource? _keySource;
   static const _kKey = 'railgo.trips.v1';
 
   @override
@@ -96,20 +103,41 @@ class PrefsTripStorage implements TripStorage {
     final raw = _prefs.getString(_kKey);
     if (raw == null || raw.isEmpty) return const [];
     try {
-      final list = jsonDecode(raw) as List<dynamic>;
+      // 旧版明文以 '[' 开头；密文为 Base64（透明迁移：下次 saveAll 自动加密）
+      final plain = raw.startsWith('[') ? raw : await _decrypt(raw);
+      final list = jsonDecode(plain) as List<dynamic>;
       return list
           .map((e) => StoredTrip.fromJson(e as Map<String, dynamic>))
           .toList();
+    } on StateError {
+      rethrow; // 密钥源不可用（Keystore 损坏）→ 显式失败，不做"空板"假象
     } catch (_) {
       return const []; // 损坏 → 空（容灾，勿崩）
     }
   }
 
   @override
-  Future<void> saveAll(List<StoredTrip> trips) => _prefs.setString(
-        _kKey,
-        jsonEncode(trips.map((t) => t.toJson()).toList()),
-      );
+  Future<void> saveAll(List<StoredTrip> trips) async {
+    final json = jsonEncode(trips.map((t) => t.toJson()).toList());
+    final ks = _keySource;
+    final payload =
+        ks == null ? json : await _encryptWith(ks, json); // 无密钥源→明文兜底
+    await _prefs.setString(_kKey, payload);
+  }
+
+  Future<String> _decrypt(String raw) async {
+    final ks = _keySource;
+    if (ks == null) {
+      throw const FormatException('行程库已加密但未注入密钥源');
+    }
+    final key = await ks.obtain();
+    return Sm4Cipher(Sm4Engine(key)).decryptStringFromBase64(raw);
+  }
+
+  Future<String> _encryptWith(Sm4KeySource ks, String plain) async {
+    final key = await ks.obtain();
+    return Sm4Cipher(Sm4Engine(key)).encryptStringToBase64(plain);
+  }
 }
 
 class TripWithStatus {
