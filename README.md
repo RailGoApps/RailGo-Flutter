@@ -13,6 +13,7 @@
 | 状态管理 | Riverpod | — |
 | 本地数据库 | sqflite | 内存缓存（SQLite 损坏时） |
 | 安全存储 | flutter_secure_storage | 应用内 PIN 派生密钥（Keystore/Keychain 损坏时） |
+| 敏感数据落盘 | SM4-CBC（行程/证件，密钥经安全存储包装） | 旧明文自动迁移；证件导出走口令信封 |
 | 加密 | 国密 SM4（pointycastle 纯 Dart） | — |
 | 生物识别 | local_auth | 6 位 PIN / 手势密码 |
 | 实时活动 | ActivityKit / 前台服务 / 实况窗 | flutter_local_notifications |
@@ -26,11 +27,11 @@
 ```
 lib/
 ├── core/          # crypto(SM4) security(Passkey) storage network l10n utils(Asia/Shanghai)
-├── features/      # trip(状态机+接续) station train emu certificate live_push sensor oobe
+├── features/      # trip(状态机+接续·SM4落盘) station train emu certificate(证件库v2·号码/MRZ识读·一人多证) live_push sensor oobe
 ├── widgets/       # 三端平台自适应组件（含 MD3E 浮动底栏）
 └── main.dart
 assets/docs/       # about / eula / privacy / permissions (Markdown)
-test/              # 行程状态机 / 接续判断 / SM4 最小单元测试（CI 覆盖率门槛 80%）
+test/              # 状态机/接续/SM4/证件库(号码·MRZ·导出)/行程加密/PIN/网络限流（CI 覆盖率门槛 80%）
 .github/           # CI: lint → test(coverage) → license-scan → build(android/ios/harmony) → release
 ```
 
@@ -59,4 +60,8 @@ flutter build hap --release
 
 ## 授权
 
-见 [`LICENSE.md`](LICENSE.md)：基础 ARR；EDU/个人类 AGPL（修改须开源）；商业需书面授权。禁止欧盟用户使用（协议声明，不做技术拦截）。
+本项目采用**自定义多重授权模型**。仓库根目录的 [`LICENSE.md`](LICENSE.md) 是**默认兜底条款**（未另行约定时适用），**不是唯一适用文件**：
+
+- **默认（兜底）**：[`LICENSE.md`](LICENSE.md) —— 基础 ARR（保留所有权利）；EDU / 个人用途适用类 AGPL 传染性开源授权（修改须开源）；企业 / 商业用途须事先书面授权。
+- **特定条款优先于兜底**：随应用分发的[《最终用户协议》](assets/docs/eula.md)、[《隐私政策》](assets/docs/privacy.md)、[《权限说明》](assets/docs/permissions.md)在软件使用层面优先适用；数据来源 RailGo 另受 [api.railgo.dev 使用限制](https://api.railgo.dev/llms.txt)约束，与本项目代码授权相互独立。
+- 禁止欧盟用户使用（协议声明，不做技术拦截）；本项目与中国国家铁路集团 / 12306 无隶属关系。
