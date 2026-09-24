@@ -88,14 +88,12 @@ class RailGoApp extends ConsumerWidget {
         '/egg': (_) => const EggFireworksPage(),
         '/newyear': (_) => const NewYearPage(),
         '/aboutEgg': (_) => const AboutEggPage(),
-        '/update': (_) => UpdatePage(api: _stubApi()),
+        // 更新页走全局 API（限流令牌桶 + 用户服务源覆盖；修复旧版 stub
+        // 绕过限流与 service_source 设置的问题）
+        '/update': (_) => UpdatePage(api: ref.read(railGoApiProvider)),
         '/speed': (_) => const SpeedPage(),
-        '/station/select': (_) =>
-            const SizedBox.shrink(), // 由HomePage以push方式打开（需ref注入）
       },
       home: const HomePage(),
     );
   }
-
-  RailGoApi _stubApi() => RailGoApi(RailGoApiClient());
 }

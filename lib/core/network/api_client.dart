@@ -37,10 +37,22 @@ class RailGoApiClient {
 
   String baseFor(String code) {
     final override = _resolveBase?.call(code);
-    if (override != null && override.isNotEmpty) return override;
+    if (override != null && override.isNotEmpty) {
+      return _normalizeBase(override);
+    }
     final meta = kServiceCatalog[code];
     if (meta == null) throw ArgumentError('unknown service code: $code');
     return meta.defaultBase;
+  }
+
+  /// 服务源 base 归一化：容忍用户输入/服务发现返回的尾斜杠与空白。
+  /// 端口号原样保留（发现端点可能返回 https://host:8443 形式）。
+  static String _normalizeBase(String base) {
+    var t = base.trim();
+    while (t.endsWith('/')) {
+      t = t.substring(0, t.length - 1);
+    }
+    return t;
   }
 
   Future<Response<T>> get<T>(

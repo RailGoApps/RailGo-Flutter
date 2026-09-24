@@ -82,14 +82,15 @@ class RailGoApi {
             'kind': isDepartureStop ? 'departure' : 'arrival',
           });
 
-  /// V2 车次正晚点：/api/v2/getTrainDelayAll?trainNum=&date=
+  /// V2 车次正晚点：/api/v2/getTrainDelayAll?trainNum=
+  /// （官方文档与基线调用点均只传 trainNum；旧实现多余的 date 参数已移除）
   Future<Response<Map<String, dynamic>>> getTrainDelayAll(
-          {required String trainNum, String? date}) =>
+          {required String trainNum}) =>
       _client.get<Map<String, dynamic>>(
-          ServiceCode.trainDelay, '/api/v2/getTrainDelayAll', query: {
-        'trainNum': trainNum,
-        if (date != null && date.isNotEmpty) 'date': date
-      });
+        ServiceCode.trainDelay,
+        '/api/v2/getTrainDelayAll',
+        query: {'trainNum': trainNum},
+      );
 
   /// V2 车站大屏：/api/v2/getStationBigScreen?stationTelecode=&kind=
   Future<Response<Map<String, dynamic>>> getStationBigScreen({
