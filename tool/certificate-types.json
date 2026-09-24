@@ -1,0 +1,336 @@
+{
+    "idTypes": [
+        {
+            "code": "ED",
+            "name": "二代居民身份证",
+            "print_code": "JM",
+            "print_name": "居民身份证"
+        },
+        {
+            "code": "WJ",
+            "name": "警官证"
+        },
+        {
+            "code": "JG",
+            "name": "军官证"
+        },
+        {
+            "code": "YW",
+            "name": "义务兵证"
+        },
+        {
+            "code": "LS",
+            "name": "临时身份证明"
+        },
+        {
+            "code": "SG",
+            "name": "士官证"
+        },
+        {
+            "code": "WY",
+            "name": "文职人员证"
+        },
+        {
+            "code": "WG",
+            "name": "文职干部证"
+        },
+        {
+            "code": "WH",
+            "name": "外国人护照",
+            "country": [
+                {"code": "UNO", "name": "联合国/United Nations"},
+                {"code": "AFG", "name": "阿富汗/Afghanistan"},
+                {"code": "ALB", "name": "阿尔巴尼亚/Albania"},
+                {"code": "DZA", "name": "阿尔及利亚/Algeria"},
+                {"code": "AND", "name": "安道尔/Andorra"},
+                {"code": "AGO", "name": "安哥拉/Angola"},
+                {"code": "ATG", "name": "安提瓜和巴布达/Antigua and Barbuda"},
+                {"code": "ARG", "name": "阿根廷/Argentina"},
+                {"code": "ARM", "name": "亚美尼亚/Armenia"},
+                {"code": "AUS", "name": "澳大利亚/Australia"},
+                {"code": "AUT", "name": "奥地利/Austria"},
+                {"code": "AZE", "name": "阿塞拜疆/Azerbaijan"},
+                {"code": "BHS", "name": "巴哈马/Bahamas"},
+                {"code": "BHR", "name": "巴林/Bahrain"},
+                {"code": "BGD", "name": "孟加拉国/Bangladesh"},
+                {"code": "BRB", "name": "巴巴多斯/Barbados"},
+                {"code": "BLR", "name": "白俄罗斯/Belarus"},
+                {"code": "BEL", "name": "比利时/Belgium"},
+                {"code": "BLZ", "name": "伯利兹/Belize"},
+                {"code": "BEN", "name": "贝宁/Benin"},
+                {"code": "BTN", "name": "不丹/Bhutan"},
+                {"code": "BOL", "name": "玻利维亚/Bolivia"},
+                {"code": "BIH", "name": "波斯尼亚和黑塞哥维那/Bosnia and Herzegovina"},
+                {"code": "BWA", "name": "博茨瓦纳/Botswana"},
+                {"code": "BRA", "name": "巴西/Brazil"},
+                {"code": "BRN", "name": "文莱/Brunei"},
+                {"code": "BGR", "name": "保加利亚/Bulgaria"},
+                {"code": "BFA", "name": "布基纳法索/Burkina Faso"},
+                {"code": "BDI", "name": "布隆迪/Burundi"},
+                {"code": "KHM", "name": "柬埔寨/Cambodia"},
+                {"code": "CMR", "name": "喀麦隆/Cameroon"},
+                {"code": "CAN", "name": "加拿大/Canada"},
+                {"code": "CPV", "name": "佛得角/Cape Verde"},
+                {"code": "CAF", "name": "中非共和国/Central African Republic"},
+                {"code": "TCD", "name": "乍得/Chad"},
+                {"code": "CHL", "name": "智利/Chile"},
+                {"code": "COL", "name": "哥伦比亚/Colombia"},
+                {"code": "COM", "name": "科摩罗/Comoros"},
+                {"code": "COG", "name": "刚果/Congo"},
+                {"code": "CRI", "name": "哥斯达黎加/Costa Rica"},
+                {"code": "HRV", "name": "克罗地亚/Croatia"},
+                {"code": "CUB", "name": "古巴/Cuba"},
+                {"code": "CYP", "name": "塞浦路斯/Cyprus"},
+                {"code": "CZE", "name": "捷克/Czech Republic"},
+                {"code": "DNK", "name": "丹麦/Denmark"},
+                {"code": "DJI", "name": "吉布提/Djibouti"},
+                {"code": "DMA", "name": "多米尼克/Dominica"},
+                {"code": "DOM", "name": "多米尼加/Dominican Republic"},
+                {"code": "ECU", "name": "厄瓜多尔/Ecuador"},
+                {"code": "EGY", "name": "埃及/Egypt"},
+                {"code": "SLV", "name": "萨尔瓦多/El Salvador"},
+                {"code": "GNQ", "name": "赤道几内亚/Equatorial Guinea"},
+                {"code": "ERI", "name": "厄立特里亚/Eritrea"},
+                {"code": "EST", "name": "爱沙尼亚/Estonia"},
+                {"code": "ETH", "name": "埃塞俄比亚/Ethiopia"},
+                {"code": "FJI", "name": "斐济/Fiji"},
+                {"code": "FIN", "name": "芬兰/Finland"},
+                {"code": "FRA", "name": "法国/France"},
+                {"code": "GAB", "name": "加蓬/Gabon"},
+                {"code": "GMB", "name": "冈比亚/Gambia"},
+                {"code": "GEO", "name": "格鲁吉亚/Georgia"},
+                {"code": "DEU", "name": "德国/Germany"},
+                {"code": "GHA", "name": "加纳/Ghana"},
+                {"code": "GRC", "name": "希腊/Greece"},
+                {"code": "GRD", "name": "格林纳达/Grenada"},
+                {"code": "GTM", "name": "危地马拉/Guatemala"},
+                {"code": "GIN", "name": "几内亚/Guinea"},
+                {"code": "GNB", "name": "几内亚比绍/Guinea-Bissau"},
+                {"code": "GUY", "name": "圭亚那/Guyana"},
+                {"code": "HTI", "name": "海地/Haiti"},
+                {"code": "HND", "name": "洪都拉斯/Honduras"},
+                {"code": "HUN", "name": "匈牙利/Hungary"},
+                {"code": "ISL", "name": "冰岛/Iceland"},
+                {"code": "IND", "name": "印度/India"},
+                {"code": "IDN", "name": "印度尼西亚/Indonesia"},
+                {"code": "IRN", "name": "伊朗/Iran"},
+                {"code": "IRQ", "name": "伊拉克/Iraq"},
+                {"code": "IRL", "name": "爱尔兰/Ireland"},
+                {"code": "ISR", "name": "以色列/Israel"},
+                {"code": "ITA", "name": "意大利/Italy"},
+                {"code": "JAM", "name": "牙买加/Jamaica"},
+                {"code": "JPN", "name": "日本/Japan"},
+                {"code": "JOR", "name": "约旦/Jordan"},
+                {"code": "KAZ", "name": "哈萨克斯坦/Kazakhstan"},
+                {"code": "KEN", "name": "肯尼亚/Kenya"},
+                {"code": "KIR", "name": "基里巴斯/Kiribati"},
+                {"code": "PRK", "name": "朝鲜/North Korea"},
+                {"code": "KOR", "name": "韩国/South Korea"},
+                {"code": "KWT", "name": "科威特/Kuwait"},
+                {"code": "KGZ", "name": "吉尔吉斯斯坦/Kyrgyzstan"},
+                {"code": "LAO", "name": "老挝/Laos"},
+                {"code": "LVA", "name": "拉脱维亚/Latvia"},
+                {"code": "LBN", "name": "黎巴嫩/Lebanon"},
+                {"code": "LSO", "name": "莱索托/Lesotho"},
+                {"code": "LBR", "name": "利比里亚/Liberia"},
+                {"code": "LBY", "name": "利比亚/Libya"},
+                {"code": "LIE", "name": "列支敦士登/Liechtenstein"},
+                {"code": "LTU", "name": "立陶宛/Lithuania"},
+                {"code": "LUX", "name": "卢森堡/Luxembourg"},
+                {"code": "MDG", "name": "马达加斯加/Madagascar"},
+                {"code": "MWI", "name": "马拉维/Malawi"},
+                {"code": "MYS", "name": "马来西亚/Malaysia"},
+                {"code": "MDV", "name": "马尔代夫/Maldives"},
+                {"code": "MLI", "name": "马里/Mali"},
+                {"code": "MLT", "name": "马耳他/Malta"},
+                {"code": "MHL", "name": "马绍尔群岛/Marshall Islands"},
+                {"code": "MRT", "name": "毛里塔尼亚/Mauritania"},
+                {"code": "MUS", "name": "毛里求斯/Mauritius"},
+                {"code": "MEX", "name": "墨西哥/Mexico"},
+                {"code": "FSM", "name": "密克罗尼西亚/Micronesia"},
+                {"code": "MDA", "name": "摩尔多瓦/Moldova"},
+                {"code": "MCO", "name": "摩纳哥/Monaco"},
+                {"code": "MNG", "name": "蒙古/Mongolia"},
+                {"code": "MNE", "name": "黑山/Montenegro"},
+                {"code": "MAR", "name": "摩洛哥/Morocco"},
+                {"code": "MOZ", "name": "莫桑比克/Mozambique"},
+                {"code": "MMR", "name": "缅甸/Myanmar"},
+                {"code": "NAM", "name": "纳米比亚/Namibia"},
+                {"code": "NRU", "name": "瑙鲁/Nauru"},
+                {"code": "NPL", "name": "尼泊尔/Nepal"},
+                {"code": "NLD", "name": "荷兰/Netherlands"},
+                {"code": "NZL", "name": "新西兰/New Zealand"},
+                {"code": "NIC", "name": "尼加拉瓜/Nicaragua"},
+                {"code": "NER", "name": "尼日尔/Niger"},
+                {"code": "NGA", "name": "尼日利亚/Nigeria"},
+                {"code": "MKD", "name": "北马其顿/North Macedonia"},
+                {"code": "NOR", "name": "挪威/Norway"},
+                {"code": "OMN", "name": "阿曼/Oman"},
+                {"code": "PAK", "name": "巴基斯坦/Pakistan"},
+                {"code": "PLW", "name": "帕劳/Palau"},
+                {"code": "PAN", "name": "巴拿马/Panama"},
+                {"code": "PNG", "name": "巴布亚新几内亚/Papua New Guinea"},
+                {"code": "PRY", "name": "巴拉圭/Paraguay"},
+                {"code": "PER", "name": "秘鲁/Peru"},
+                {"code": "PHL", "name": "菲律宾/Philippines"},
+                {"code": "POL", "name": "波兰/Poland"},
+                {"code": "PRT", "name": "葡萄牙/Portugal"},
+                {"code": "QAT", "name": "卡塔尔/Qatar"},
+                {"code": "ROU", "name": "罗马尼亚/Romania"},
+                {"code": "RUS", "name": "俄罗斯/Russia"},
+                {"code": "RWA", "name": "卢旺达/Rwanda"},
+                {"code": "KNA", "name": "圣基茨和尼维斯/Saint Kitts and Nevis"},
+                {"code": "LCA", "name": "圣卢西亚/Saint Lucia"},
+                {"code": "VCT", "name": "圣文森特和格林纳丁斯/Saint Vincent and the Grenadines"},
+                {"code": "WSM", "name": "萨摩亚/Samoa"},
+                {"code": "SMR", "name": "圣马力诺/San Marino"},
+                {"code": "STP", "name": "圣多美和普林西比/Sao Tome and Principe"},
+                {"code": "SAU", "name": "沙特阿拉伯/Saudi Arabia"},
+                {"code": "SEN", "name": "塞内加尔/Senegal"},
+                {"code": "SRB", "name": "塞尔维亚/Serbia"},
+                {"code": "SYC", "name": "塞舌尔/Seychelles"},
+                {"code": "SLE", "name": "塞拉利昂/Sierra Leone"},
+                {"code": "SGP", "name": "新加坡/Singapore"},
+                {"code": "SVK", "name": "斯洛伐克/Slovakia"},
+                {"code": "SVN", "name": "斯洛文尼亚/Slovenia"},
+                {"code": "SLB", "name": "所罗门群岛/Solomon Islands"},
+                {"code": "SOM", "name": "索马里/Somalia"},
+                {"code": "ZAF", "name": "南非/South Africa"},
+                {"code": "SSD", "name": "南苏丹/South Sudan"},
+                {"code": "ESP", "name": "西班牙/Spain"},
+                {"code": "LKA", "name": "斯里兰卡/Sri Lanka"},
+                {"code": "SDN", "name": "苏丹/Sudan"},
+                {"code": "SUR", "name": "苏里南/Suriname"},
+                {"code": "SWZ", "name": "斯威士兰/Swaziland"},
+                {"code": "SWE", "name": "瑞典/Sweden"},
+                {"code": "CHE", "name": "瑞士/Switzerland"},
+                {"code": "SYR", "name": "叙利亚/Syria"},
+                {"code": "TJK", "name": "塔吉克斯坦/Tajikistan"},
+                {"code": "TZA", "name": "坦桑尼亚/Tanzania"},
+                {"code": "THA", "name": "泰国/Thailand"},
+                {"code": "TLS", "name": "东帝汶/Timor-Leste"},
+                {"code": "TGO", "name": "多哥/Togo"},
+                {"code": "TON", "name": "汤加/Tonga"},
+                {"code": "TTO", "name": "特立尼达和多巴哥/Trinidad and Tobago"},
+                {"code": "TUN", "name": "突尼斯/Tunisia"},
+                {"code": "TUR", "name": "土耳其/Turkey"},
+                {"code": "TKM", "name": "土库曼斯坦/Turkmenistan"},
+                {"code": "TUV", "name": "图瓦卢/Tuvalu"},
+                {"code": "UGA", "name": "乌干达/Uganda"},
+                {"code": "UKR", "name": "乌克兰/Ukraine"},
+                {"code": "ARE", "name": "阿联酋/United Arab Emirates"},
+                {"code": "GBR", "name": "英国/United Kingdom"},
+                {"code": "USA", "name": "美国/United States"},
+                {"code": "URY", "name": "乌拉圭/Uruguay"},
+                {"code": "UZB", "name": "乌兹别克斯坦/Uzbekistan"},
+                {"code": "VUT", "name": "瓦努阿图/Vanuatu"},
+                {"code": "VAT", "name": "梵蒂冈/Vatican City"},
+                {"code": "VEN", "name": "委内瑞拉/Venezuela"},
+                {"code": "VNM", "name": "越南/Vietnam"},
+                {"code": "YEM", "name": "也门/Yemen"},
+                {"code": "ZMB", "name": "赞比亚/Zambia"},
+                {"code": "ZWE", "name": "津巴布韦/Zimbabwe"}
+            ]
+        },
+        {
+            "code": "HZ",
+            "name": "中国护照",
+            "country": "CHN"
+        },
+        {
+            "code": "GN",
+            "name": "港澳居民来往内地通行证"
+        },
+        {
+            "code": "LX",
+            "name": "中国旅行证"
+        },
+        {
+            "code": "NG",
+            "name": "往来港澳通行证"
+        },
+        {
+            "code": "NT",
+            "name": "大陆居民来往台湾通行证"
+        },
+        {
+            "code": "TN",
+            "name": "台湾居民来往大陆通行证"
+        },
+        {
+            "code": "WL",
+            "name": "外国人永久居留身份证"
+        },
+        {
+            "code": "WR",
+            "name": "外国人出入境证"
+        },
+        {
+            "code": "RJ",
+            "name": "中国出入境通行证"
+        },
+        {
+            "code": "GJ",
+            "name": "港澳居民居住证"
+        },
+        {
+            "code": "HY",
+            "name": "海员证"
+        },
+        {
+            "code": "DL",
+            "name": "调令"
+        },
+        {
+            "code": "HK",
+            "name": "居民户口簿",
+            "print_code": "JM"
+        },
+        {
+            "code": "MP",
+            "name": "免票"
+        },
+        {
+            "code": "TJ",
+            "name": "台湾居民居住证"
+        },
+        {
+            "code": "CS",
+            "name": "出生医学证明",
+            "remake": "仅限6周岁以下"
+        },
+        {
+            "code": "JS",
+            "name": "军士证"
+        },
+        {
+            "code": "WS",
+            "name": "警士证"
+        },
+        {
+            "code": "BP(证件号码前添加)",
+            "name": "无证件补票"
+        },
+        {
+            "code": "WZ",
+            "name": "无证"
+        },
+        {
+            "code": "SF",
+            "name": "刑满释放证明"
+        },
+        {
+            "code": "JJ",
+            "name": "救助证"
+        },
+        {
+            "code":"BS",
+            "name":"护照报失证明"
+        },
+        {
+            "code": "QT",
+            "name": "其他",
+            "remake": "前往港澳通行证按QT发售"
+        }
+    ]
+}
