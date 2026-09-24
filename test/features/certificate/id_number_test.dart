@@ -25,8 +25,8 @@ void main() {
   });
 
   test('末位小写 x 自动归一（真实校验位为 X 的号码）', () {
-    // 前 17 位 11010119900307776 的 GB 11643 校验位为 X
-    final r = analyzeCertNumber('ED', '11010119900307776x');
+    // 前 17 位 11010119900307774 的 GB 11643 校验位为 X（加权和 244 → 余 2）
+    final r = analyzeCertNumber('ED', '11010119900307774x');
     expect(r.checksumOk, isTrue);
     expect(r.gender, CertGender.female); // 顺序码末位 6（偶）→ 女
   });
