@@ -103,8 +103,7 @@ class Certificate {
         number: mrz.documentNumber,
         name: mrz.fullName,
         birthDate: mrz.birthDate,
-        sex:
-            mrz.sex == CertGender.unknown ? null : certGenderLabel(mrz.sex),
+        sex: mrz.sex == CertGender.unknown ? null : certGenderLabel(mrz.sex),
         nationalityCode: mrz.nationalityCode,
         nationality: mrz.nationalityName,
         expiryDate: mrz.expiryDate,
@@ -168,8 +167,7 @@ List<PersonGroup> groupCertificatesByPerson(Iterable<Certificate> certs) {
 }
 
 /// 同一号码出现在多个"人"名下 → 告警（多半是中英文姓名/生日口径不一致导致漏合并）
-List<String> duplicateCertificateNumberWarnings(
-    Iterable<Certificate> certs) {
+List<String> duplicateCertificateNumberWarnings(Iterable<Certificate> certs) {
   final byNumber = <String, Set<String>>{};
   for (final c in certs) {
     final num = c.number.trim().toUpperCase();
@@ -186,9 +184,8 @@ List<String> duplicateCertificateNumberWarnings(
   return out;
 }
 
-String _maskNumber(String n) => n.length <= 4
-    ? n
-    : '${n.substring(0, 2)}****${n.substring(n.length - 2)}';
+String _maskNumber(String n) =>
+    n.length <= 4 ? n : '${n.substring(0, 2)}****${n.substring(n.length - 2)}';
 
 /// 纯加解密（无 IO，可单测）：Certificate ⇄ 加密 Base64 载荷
 class CertificateCrypto {

@@ -126,8 +126,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
   }
 
   void _snack(String text) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(text)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
@@ -240,8 +239,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
     final age = certAgeAt(birth, DateTime.now());
     final attention = g.certificates
         .where((c) =>
-            certExpiryInfo(c.expiryDate).status !=
-            CertExpiryStatus.valid)
+            certExpiryInfo(c.expiryDate).status != CertExpiryStatus.valid)
         .length;
     return Card(
       margin: const EdgeInsets.only(top: 8),
@@ -315,8 +313,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
                 fontSize: 12,
                 color: switch (expiry.status) {
                   CertExpiryStatus.expired => Colors.red,
-                  CertExpiryStatus.expiringSoon =>
-                    const Color(0xFFE65100),
+                  CertExpiryStatus.expiringSoon => const Color(0xFFE65100),
                   _ => null,
                 },
               )),
@@ -343,8 +340,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('删除证件'),
-        content: Text(
-            '确定删除 ${c.name} 的 '
+        content: Text('确定删除 ${c.name} 的 '
             '${certShortName(c.typeCode)}（${_mask(c.number)}）？'),
         actions: [
           TextButton(
@@ -390,8 +386,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
           final usage = certUsage(type);
           final natCode = chineseNational ? 'CHN' : 'ZZ';
           final hint = certLimitationHint(type, nationalityCode: natCode);
-          final expiryPolicy =
-              certExpiryPolicy(type, nationalityCode: natCode);
+          final expiryPolicy = certExpiryPolicy(type, nationalityCode: natCode);
           return Padding(
             padding: EdgeInsets.only(
               left: 16,
@@ -449,8 +444,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
                   controller: number,
                   textInputAction: TextInputAction.done,
                   onChanged: (v) => setSheet(
-                    () =>
-                        _syncBirth(analyzeCertNumber(type, v), birth),
+                    () => _syncBirth(analyzeCertNumber(type, v), birth),
                   ),
                   decoration: InputDecoration(
                     labelText: '证件号码（必填）',
@@ -461,9 +455,8 @@ class _CertificatesPageState extends State<CertificatesPage> {
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('中国籍'),
-                    subtitle: Text(chineseNational
-                        ? '无使用天数限制'
-                        : '非中国籍：有效期 30 天，需填写有效期'),
+                    subtitle: Text(
+                        chineseNational ? '无使用天数限制' : '非中国籍：有效期 30 天，需填写有效期'),
                     value: chineseNational,
                     onChanged: (v) => setSheet(() => chineseNational = v),
                   ),
@@ -484,12 +477,9 @@ class _CertificatesPageState extends State<CertificatesPage> {
                         ? '有效期至 yyyymmdd（必填）'
                         : '有效期至 yyyymmdd',
                     helperText: switch (expiryPolicy) {
-                      CertExpiryPolicy.required =>
-                        '短期证件：不填有效期无法判断可用性',
-                      CertExpiryPolicy.recommended =>
-                        '该证件有固定有效期，建议填写以获得到期提醒',
-                      CertExpiryPolicy.optional =>
-                        '长期证件可不填；临时/一次性证件建议填写',
+                      CertExpiryPolicy.required => '短期证件：不填有效期无法判断可用性',
+                      CertExpiryPolicy.recommended => '该证件有固定有效期，建议填写以获得到期提醒',
+                      CertExpiryPolicy.optional => '长期证件可不填；临时/一次性证件建议填写',
                     },
                   ),
                 ),
@@ -537,9 +527,8 @@ class _CertificatesPageState extends State<CertificatesPage> {
         !RegExp(r'^\d{8}$').hasMatch(birth.text.trim())) {
       errors.add('出生日期应为 8 位 yyyymmdd');
     }
-    final birthFinal = birth.text.trim().isNotEmpty
-        ? birth.text.trim()
-        : ins.birthDate;
+    final birthFinal =
+        birth.text.trim().isNotEmpty ? birth.text.trim() : ins.birthDate;
     final maxAge = certMaxAgeYears(type);
     if (maxAge != null && birthFinal != null) {
       final age = certAgeAt(birthFinal, DateTime.now());
@@ -548,8 +537,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
       }
     }
     final expiryFinal = expiry.text.trim();
-    if (expiryFinal.isNotEmpty &&
-        !RegExp(r'^\d{8}$').hasMatch(expiryFinal)) {
+    if (expiryFinal.isNotEmpty && !RegExp(r'^\d{8}$').hasMatch(expiryFinal)) {
       errors.add('有效期应为 8 位 yyyymmdd');
     }
     final maxDays = certMaxValidityDays(
@@ -623,8 +611,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
       if (ins.checksumOk != null)
         Chip(
           label: Text(ins.checksumOk! ? '校验位 ✓' : '校验位 ✗'),
-          backgroundColor:
-              ins.checksumOk! ? null : const Color(0xFFFFEBEE),
+          backgroundColor: ins.checksumOk! ? null : const Color(0xFFFFEBEE),
         ),
     ];
     return Wrap(
@@ -658,8 +645,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
             final age = certAgeAt(r.birthDate, DateTime.now());
             Widget check(String label, bool ok) => Chip(
                   label: Text('$label ${ok ? '✓' : '✗'}'),
-                  backgroundColor:
-                      ok ? null : const Color(0xFFFFEBEE),
+                  backgroundColor: ok ? null : const Color(0xFFFFEBEE),
                 );
             return Card(
               child: Padding(
@@ -804,8 +790,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
     }
     if (!confirmed) return;
 
-    final finalName =
-        name.text.trim().isEmpty ? r.fullName : name.text.trim();
+    final finalName = name.text.trim().isEmpty ? r.fullName : name.text.trim();
     try {
       await _repo.save(Certificate(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -813,8 +798,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
         number: r.documentNumber,
         name: finalName,
         birthDate: r.birthDate,
-        sex:
-            r.sex == CertGender.unknown ? null : certGenderLabel(r.sex),
+        sex: r.sex == CertGender.unknown ? null : certGenderLabel(r.sex),
         nationalityCode: r.nationalityCode,
         nationality: r.nationalityName,
         expiryDate: r.expiryDate,
@@ -846,8 +830,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('通行密钥',
-                style: TextStyle(fontWeight: FontWeight.w700)),
+            const Text('通行密钥', style: TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             FutureBuilder<List<String>>(
               future: gate?.biometricKinds() ?? Future.value(const <String>[]),
@@ -856,9 +839,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
                 return ListTile(
                   leading: const Icon(Icons.fingerprint),
                   title: const Text('生物识别（系统级）'),
-                  subtitle: Text(kinds.isEmpty
-                      ? '未登记或不可用'
-                      : kinds.join('、')),
+                  subtitle: Text(kinds.isEmpty ? '未登记或不可用' : kinds.join('、')),
                 );
               },
             ),
@@ -943,8 +924,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
               TextField(
                 controller: pass,
                 obscureText: true,
-                decoration:
-                    const InputDecoration(labelText: '导出口令（≥8 位）'),
+                decoration: const InputDecoration(labelText: '导出口令（≥8 位）'),
               ),
               const SizedBox(height: 8),
               FilledButton(
@@ -967,8 +947,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(error!,
-                      style:
-                          const TextStyle(color: Colors.red, fontSize: 12)),
+                      style: const TextStyle(color: Colors.red, fontSize: 12)),
                 ),
               if (result != null) ...[
                 const SizedBox(height: 8),
@@ -1017,13 +996,11 @@ class _CertificatesPageState extends State<CertificatesPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('导入备份',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              const Text('导入备份', style: TextStyle(fontWeight: FontWeight.w700)),
               TextField(
                 controller: pass,
                 obscureText: true,
-                decoration:
-                    const InputDecoration(labelText: '导出口令'),
+                decoration: const InputDecoration(labelText: '导出口令'),
               ),
               TextField(
                 controller: payload,
@@ -1057,8 +1034,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(error!,
-                      style:
-                          const TextStyle(color: Colors.red, fontSize: 12)),
+                      style: const TextStyle(color: Colors.red, fontSize: 12)),
                 ),
             ],
           ),
@@ -1078,8 +1054,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
       ? '${ymd.substring(0, 4)}-${ymd.substring(4, 6)}-${ymd.substring(6, 8)}'
       : ymd;
 
-  String _ymd(DateTime d) =>
-      '${d.year}${d.month.toString().padLeft(2, '0')}'
+  String _ymd(DateTime d) => '${d.year}${d.month.toString().padLeft(2, '0')}'
       '${d.day.toString().padLeft(2, '0')}';
 
   /// 库级到期提醒（已过期 → 不可用；30 天内 → 临期）

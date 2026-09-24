@@ -67,8 +67,7 @@ void main() {
   });
 
   test('旧明文自动可读 → 下次保存即迁移为密文', () async {
-    const plain =
-        '[{"id":"t1","trainNum":"G1234","date":"20260925","stops":'
+    const plain = '[{"id":"t1","trainNum":"G1234","date":"20260925","stops":'
         '[{"station":"上海虹桥","telecode":"AOH","arrive":null,'
         '"depart":"08:00","day":0},'
         '{"station":"北京南","telecode":"VNP","arrive":"13:30",'

@@ -116,8 +116,7 @@ void main() {
     expect(raw.contains('110101199003077758'), isFalse);
   });
 
-  test('门禁拒绝 → 读/写/删/导出均抛 GateDeniedException（红队：无绕过）',
-      () async {
+  test('门禁拒绝 → 读/写/删/导出均抛 GateDeniedException（红队：无绕过）', () async {
     final repo = CertificateRepository(
       gate: const _FakeGate(false),
       keySource: _FixedKey(_k(0)),
@@ -158,8 +157,7 @@ void main() {
       'name': '旧数据',
       'birthDate': '19900307',
     });
-    final payload =
-        Sm4Cipher(Sm4Engine(key)).encryptStringToBase64(legacyJson);
+    final payload = Sm4Cipher(Sm4Engine(key)).encryptStringToBase64(legacyJson);
     final cert = CertificateCrypto(key).decrypt(payload);
     expect(cert.typeCode, 'ED');
     expect(cert.name, '旧数据');

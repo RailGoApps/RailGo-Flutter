@@ -64,13 +64,11 @@ class MrzResult {
   final bool personalNumberCheckOk;
   final List<String> warnings;
 
-  String get fullName =>
-      givenNames.isEmpty ? surname : '$surname $givenNames';
+  String get fullName => givenNames.isEmpty ? surname : '$surname $givenNames';
 
   String get issuerName => kIso3Names[issuerCode] ?? issuerCode;
 
-  String get nationalityName =>
-      kIso3Names[nationalityCode] ?? nationalityCode;
+  String get nationalityName => kIso3Names[nationalityCode] ?? nationalityCode;
 
   bool get allChecksOk =>
       docNumberCheckOk &&
@@ -109,8 +107,7 @@ MrzResult parseMrz(String raw, {DateTime? now}) {
   if (lines.length == 2 && lines.every((l) => l.length == 36)) {
     return _parseTd2(lines, at);
   }
-  throw FormatException(
-      '机读区应为 3×30（TD1）、2×36（TD2）或 2×44（TD3），'
+  throw FormatException('机读区应为 3×30（TD1）、2×36（TD2）或 2×44（TD3），'
       '当前 ${lines.length} 行：${lines.map((l) => l.length).join('/')}');
 }
 
@@ -261,9 +258,8 @@ MrzResult _parseTd2(List<String> l, DateTime now) {
             l2.substring(28, 35),
         l2.substring(35, 36)),
     personalNumberCheckOk: true, // TD2 无独立个人号校验位
-    warnings: l2.substring(0, 9).contains('<')
-        ? ['证件号中含填充符']
-        : const <String>[],
+    warnings:
+        l2.substring(0, 9).contains('<') ? ['证件号中含填充符'] : const <String>[],
   );
 }
 
@@ -297,10 +293,8 @@ MrzResult _parseTd3(List<String> l, DateTime now) {
             l2.substring(21, 28) +
             l2.substring(28, 43),
         l2.substring(43, 44)),
-    personalNumberCheckOk:
-        _check(l2.substring(28, 42), l2.substring(42, 43)),
-    warnings: l2.substring(0, 9).contains('<')
-        ? ['证件号中含填充符']
-        : const <String>[],
+    personalNumberCheckOk: _check(l2.substring(28, 42), l2.substring(42, 43)),
+    warnings:
+        l2.substring(0, 9).contains('<') ? ['证件号中含填充符'] : const <String>[],
   );
 }

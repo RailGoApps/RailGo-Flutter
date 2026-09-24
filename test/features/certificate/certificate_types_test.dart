@@ -5,15 +5,14 @@ import 'package:railgo/features/certificate/certificate_types.dart';
 void main() {
   final now = DateTime(2026, 9, 24, 12);
 
-  String ymd(DateTime d) =>
-      '${d.year}${d.month.toString().padLeft(2, '0')}'
+  String ymd(DateTime d) => '${d.year}${d.month.toString().padLeft(2, '0')}'
       '${d.day.toString().padLeft(2, '0')}';
 
   test('到期状态：过期/当天/临期/有效/未知', () {
     expect(certExpiryInfo(null).status, CertExpiryStatus.unknown);
     expect(certExpiryInfo('bad').status, CertExpiryStatus.unknown);
-    expect(certExpiryInfo('20260923', now: now).status,
-        CertExpiryStatus.expired);
+    expect(
+        certExpiryInfo('20260923', now: now).status, CertExpiryStatus.expired);
     expect(certExpiryInfo('20260923', now: now).daysRemaining, -1);
 
     final today = certExpiryInfo('20260924', now: now);

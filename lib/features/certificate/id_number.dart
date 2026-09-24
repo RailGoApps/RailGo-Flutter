@@ -109,7 +109,23 @@ bool _validYmd(String s) {
 
 /// GB 11643 / ISO 7064 MOD 11-2 校验位
 const List<int> _kIdWeights = [
-  7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2,
+  7,
+  9,
+  10,
+  5,
+  8,
+  4,
+  2,
+  1,
+  6,
+  3,
+  7,
+  9,
+  10,
+  5,
+  8,
+  4,
+  2,
 ];
 const String _kCheckChars = '10X98765432';
 
@@ -173,9 +189,8 @@ IdNumberInsight _resident15(String n) {
     gender: seqDigit == null
         ? CertGender.unknown
         : (seqDigit % 2 == 1 ? CertGender.male : CertGender.female),
-    regionCode: kRegionNames.containsKey(n.substring(0, 2))
-        ? n.substring(0, 2)
-        : null,
+    regionCode:
+        kRegionNames.containsKey(n.substring(0, 2)) ? n.substring(0, 2) : null,
     warning: birthOk ? null : '出生日期段非法（旧 15 位证）',
   );
 }

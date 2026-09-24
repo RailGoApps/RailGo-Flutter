@@ -34,8 +34,7 @@ class PinHasher {
 
   static bool isValidPinFormat(String pin) => RegExp(r'^\d{6}$').hasMatch(pin);
 
-  String hash(String pin, String salt,
-      {int iterations = kLegacyIterations}) {
+  String hash(String pin, String salt, {int iterations = kLegacyIterations}) {
     var bytes = Uint8List.fromList(utf8.encode(salt + pin));
     final d = SHA256Digest();
     for (var i = 0; i < iterations; i++) {
@@ -125,8 +124,7 @@ class LocalAuthGate implements AuthGate {
       if (ok) {
         await _prefs?.setString(
           _kPinHash,
-          'v2:${_hasher.hash(input, salt,
-              iterations: PinHasher.kCurrentIterations)}',
+          'v2:${_hasher.hash(input, salt, iterations: PinHasher.kCurrentIterations)}',
         );
       }
     }
