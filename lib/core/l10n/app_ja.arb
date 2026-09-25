@@ -27,7 +27,7 @@
   "docEula": "利用規約",
   "docPrivacy": "プライバシーポリシー",
   "docPermissions": "権限について",
-  "dataSource": "データ提供：RailGo (railgo.dev)",
+  "dataSource": "データ提供：RailGo (https://railgo.dev)",
   "searchStationHint": "駅名を検索",
   "updateAppTitle": "アプリ本体",
   "updateDbTitle": "オフラインデータベース",

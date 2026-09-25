@@ -27,7 +27,7 @@
   "docEula": "用户协议",
   "docPrivacy": "隐私政策",
   "docPermissions": "权限说明",
-  "dataSource": "数据来源：RailGo (railgo.dev)",
+  "dataSource": "数据来源：RailGo (https://railgo.dev)",
   "searchStationHint": "搜索车站名",
   "updateAppTitle": "软件本体",
   "updateDbTitle": "离线数据库",

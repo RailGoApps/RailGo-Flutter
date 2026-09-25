@@ -27,7 +27,7 @@
   "docEula": "사용권 계약",
   "docPrivacy": "개인정보 처리방침",
   "docPermissions": "권한 안내",
-  "dataSource": "데이터 출처: RailGo (railgo.dev)",
+  "dataSource": "데이터 출처: RailGo (https://railgo.dev)",
   "searchStationHint": "역 이름 검색",
   "updateAppTitle": "앱 본체",
   "updateDbTitle": "오프라인 데이터베이스",

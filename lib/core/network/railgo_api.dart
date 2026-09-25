@@ -21,13 +21,14 @@ class RailGoApi {
           query: {'train': train});
 
   /// V1 站到站：/api/train/sts_query?from=&to=&date=[&city=]
-  Future<Response<Map<String, dynamic>>> stationToStation({
+  /// 文档（366464961e0）：成功响应为顶层数组（车次对象列表）
+  Future<Response<List<dynamic>>> stationToStation({
     required String fromTelecode,
     required String toTelecode,
     required String date,
     bool city = false,
   }) =>
-      _client.get<Map<String, dynamic>>(
+      _client.get<List<dynamic>>(
           ServiceCode.train, '/api/train/sts_query', query: {
         'from': fromTelecode,
         'to': toTelecode,

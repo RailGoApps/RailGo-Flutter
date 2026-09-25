@@ -41,8 +41,20 @@ class _CoachPicPageState extends State<CoachPicPage> {
           final r = await widget.api.getCoachPic(widget.trainNum);
           final d = r.data;
           if (d != null && d['success'] == true && d['data'] is Map) {
-            final url =
-                (d['data'] as Map)['image_url'] ?? (d['data'] as Map)['url'];
+            // 文档（479766603e0）：官方图为 data.carPic（服务器动态拼接，
+            // 防 12306 换地址）；车厢分席图在 data.coachPicList[].pictureUrl。
+            // 兼容旧字段 image_url/url 作为回退。
+            final data = d['data'] as Map;
+            final coachList = data['coachPicList'];
+            final firstCoachPic = coachList is List &&
+                    coachList.isNotEmpty &&
+                    coachList.first is Map
+                ? (coachList.first as Map)['pictureUrl']?.toString()
+                : null;
+            final url = data['carPic']?.toString() ??
+                firstCoachPic ??
+                data['image_url']?.toString() ??
+                data['url']?.toString();
             if (mounted && url != null) {
               setState(() => _officialUrl = url.toString());
             }

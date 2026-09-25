@@ -79,7 +79,10 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
             final notFound = error is TrainNotFoundException ||
                 (error is DioException &&
                     error.type == DioExceptionType.badResponse &&
-                    error.response?.statusCode == 404);
+                    // 文档 479755220e0：getTrainMain 对"车次不存在/
+                    // 当日不开行/参数有误"统一返回 400
+                    (error.response?.statusCode == 400 ||
+                        error.response?.statusCode == 404));
             final (headline, message, icon) = notFound
                 ? ('404', '车次不存在或当日不开行', Icons.search_off)
                 : switch (error) {

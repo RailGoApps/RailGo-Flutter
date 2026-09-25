@@ -27,7 +27,7 @@
   "docEula": "EULA",
   "docPrivacy": "Privacy Policy",
   "docPermissions": "Permissions",
-  "dataSource": "Data source: RailGo (railgo.dev)",
+  "dataSource": "Data source: RailGo (https://railgo.dev)",
   "searchStationHint": "Search station name",
   "updateAppTitle": "Application",
   "updateDbTitle": "Offline database",
