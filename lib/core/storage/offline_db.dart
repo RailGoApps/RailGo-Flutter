@@ -61,14 +61,20 @@ class TrainRow {
 List<String> buildTrainPreselectSql(String keyword) {
   final kw = keyword.trim();
   if (kw.isEmpty) return const [];
-  final esc = kw.replaceAll("'", "''");
+  // 审计 B-03：LIKE 通配符转义（\ % _），防用户输入注入模式匹配；
+  // 单引号按 SQL 字面量双写。转义子句使用 ESCAPE '\'。
+  final esc = kw
+      .replaceAll("'", "''")
+      .replaceAll(r'\', r'\\')
+      .replaceAll('%', r'\%')
+      .replaceAll('_', r'\_');
   if (kw.codeUnitAt(0) >= 0x30 && kw.codeUnitAt(0) <= 0x39) {
     return [
-      "SELECT code, numberFull, timetable FROM trains WHERE numberFull LIKE '%\"_$esc\"%' OR numberFull LIKE '%\"$esc\"%'",
+      "SELECT code, numberFull, timetable FROM trains WHERE numberFull LIKE '%\"_$esc\"%' ESCAPE '\\' OR numberFull LIKE '%\"$esc\"%' ESCAPE '\\'",
     ];
   }
   return [
-    "SELECT code, numberFull, timetable FROM trains WHERE numberFull LIKE '%$esc%'"
+    "SELECT code, numberFull, timetable FROM trains WHERE numberFull LIKE '%$esc%' ESCAPE '\\'"
   ];
 }
 

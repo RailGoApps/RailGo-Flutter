@@ -115,6 +115,30 @@ class ServiceEndpoint {
   final String url;
 }
 
+/// 服务源 URL 校验与归一化（审计 R-01：传输层防降级）。
+///
+/// 仅接受 https —— 服务发现/用户配置一旦注入 http:// 或其他协议，
+/// 所有 API 流量（含卡密鉴权参数）将以明文出网。此函数是全部请求的
+/// 统一收口：容忍首尾空白与尾斜杠，拒绝非 https、userinfo、空主机。
+/// 非法输入抛 [FormatException]。
+String sanitizeServiceBaseUrl(String raw) {
+  var t = raw.trim();
+  while (t.endsWith('/')) {
+    t = t.substring(0, t.length - 1);
+  }
+  final uri = Uri.tryParse(t);
+  if (uri == null || !uri.hasScheme || uri.scheme != 'https') {
+    throw const FormatException('服务源仅支持 https:// 地址');
+  }
+  if (uri.userInfo.isNotEmpty) {
+    throw const FormatException('服务源地址不允许携带用户名密码');
+  }
+  if (uri.host.isEmpty) {
+    throw const FormatException('服务源地址缺少主机名');
+  }
+  return t;
+}
+
 /// 解析 /api/v2/service_endpoints 返回：[{code:[{desc,url},...]},...]
 Map<String, List<ServiceEndpoint>> parseServiceEndpoints(List<dynamic> raw) {
   final out = <String, List<ServiceEndpoint>>{};
@@ -126,10 +150,15 @@ Map<String, List<ServiceEndpoint>> parseServiceEndpoints(List<dynamic> raw) {
       if (entry.value is List) {
         for (final ep in entry.value as List) {
           if (ep is Map && ep['url'] != null) {
-            list.add(ServiceEndpoint(
-                code: code,
-                desc: (ep['desc'] ?? '') as String,
-                url: ep['url'] as String));
+            // 审计 R-01：非 https 端点直接丢弃（不进入可选列表）
+            try {
+              list.add(ServiceEndpoint(
+                  code: code,
+                  desc: (ep['desc'] ?? '') as String,
+                  url: sanitizeServiceBaseUrl(ep['url'] as String)));
+            } on FormatException {
+              continue;
+            }
           }
         }
       }

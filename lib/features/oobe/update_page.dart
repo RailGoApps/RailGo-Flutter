@@ -5,6 +5,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:dio/dio.dart';
 
 import '../../core/network/railgo_api.dart';
 
@@ -83,8 +85,20 @@ class _UpdatePageState extends State<UpdatePage> {
         _appResult = appResult;
         _dbResult = dbResult;
       });
-    } on Exception catch (e) {
-      setState(() => _error = '检查更新失败：$e');
+    } on DioException catch (e) {
+      // 审计 U-04：异常分类为人话文案，不外泄内部域名/堆栈细节
+      setState(() {
+        _error = switch (e.type) {
+          DioExceptionType.connectionTimeout ||
+          DioExceptionType.sendTimeout ||
+          DioExceptionType.receiveTimeout =>
+            '网络连接超时，请检查网络后重试',
+          DioExceptionType.connectionError => '网络连接失败，请检查网络后重试',
+          _ => '更新服务暂时不可用，请稍后重试',
+        };
+      });
+    } on Exception {
+      setState(() => _error = '检查更新失败，请稍后重试');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -154,17 +168,46 @@ class _UpdatePageState extends State<UpdatePage> {
             const Divider(height: 20),
             Text('当前版本：${r.current}'),
             if (r.hasUpdate) Text('最新版本：${r.latest}'),
-            if (r.hasUpdate)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: FilledButton(
-                  onPressed: () {}, // 下载交给系统集成（url_launcher/webview 由壳层注入）
-                  child: const Text('立即更新'),
-                ),
-              ),
+                if (r.hasUpdate)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: FilledButton(
+                      // 审计 U-04：死按钮 → 校验 https 后复制下载地址
+                      // （url_launcher 尚未引入，浏览器打开由用户完成）
+                      onPressed: r.downloadUrl == null
+                          ? null
+                          : () async {
+                              final url = r.downloadUrl!;
+                              final uri = Uri.tryParse(url);
+                              if (uri == null ||
+                                  !uri.hasScheme ||
+                                  uri.scheme != 'https') {
+                                _snack('下载地址无效，请联系开发者');
+                                return;
+                              }
+                              await Clipboard.setData(
+                                  ClipboardData(text: url));
+                              if (!mounted) return;
+                              _snack('下载地址已复制，请在浏览器打开');
+                            },
+                      child: const Text('立即更新'),
+                    ),
+                  ),
+                if (r.hasUpdate && r.downloadUrl == null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Text(
+                      '暂无下载地址（新版本可能尚未发布）',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ),
           ],
         ),
       ),
     );
+  }
+
+  void _snack(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 }

@@ -113,7 +113,13 @@ class _HomePageState extends ConsumerState<HomePage> {
             value: _keyboardValue,
             onChanged: (v) => setState(() => _keyboardValue = v),
             onConfirm: () {
-              if (_keyboardValue.isEmpty) return;
+              // 审计 U-02：空输入时给出反馈，避免"按钮失灵"观感
+              if (_keyboardValue.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('请先输入车次号')),
+                );
+                return;
+              }
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => TrainResultPage(keyword: _keyboardValue),

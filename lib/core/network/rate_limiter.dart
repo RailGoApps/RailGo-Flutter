@@ -11,20 +11,23 @@ import 'dart:async';
 class TokenBucket {
   TokenBucket({this.ratePerSecond = 2, this.burst = 4})
       : _tokens = burst.toDouble(),
-        _lastRefill = DateTime.now();
+        _mono = Stopwatch()..start();
 
   final double ratePerSecond;
   final int burst;
   double _tokens;
-  DateTime _lastRefill;
+  // 审计 B-01：改用单调时钟。墙钟回拨会让"流逝时间"恒 ≤0，
+  // 令牌永不补充（自锁）或被人为回拨刷桶（WAF 合规失效）。
+  final Stopwatch _mono;
+  int _lastElapsedUs = 0;
   final List<Completer<void>> _waiters = [];
 
   void _refill() {
-    final now = DateTime.now();
-    final elapsed = now.difference(_lastRefill).inMicroseconds / 1e6;
+    final us = _mono.elapsedMicroseconds;
+    final elapsed = (us - _lastElapsedUs) / 1e6;
     if (elapsed <= 0) return;
+    _lastElapsedUs = us;
     _tokens = (_tokens + elapsed * ratePerSecond).clamp(0, burst.toDouble());
-    _lastRefill = now;
   }
 
   Future<void> acquire() {

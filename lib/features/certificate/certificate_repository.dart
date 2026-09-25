@@ -9,6 +9,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -256,9 +257,6 @@ class CertificateRepository {
     await storage.remove(id);
   }
 
-  /// 兼容旧接口（内部存储操作；对外请用 [deleteSecure]）
-  Future<void> delete(String id) => storage.remove(id);
-
   // ─────────────── 导出 / 导入（口令信封） ───────────────
   //
   // 设备 SM4 主密钥在 TEE/Keystore 内不可导出 → 跨设备迁移必须有可携带秘密。
@@ -284,11 +282,14 @@ class CertificateRepository {
       ],
       'certificates': [for (final c in certs) c.toPlainJson()],
     };
-    final cipher = Sm4Cipher(Sm4Engine(_backupKey(passphrase)));
+    // 审计 R-04：每次导出使用独立随机盐（防跨用户彩虹表预计算）
+    final salt = _randomSaltHex();
+    final cipher = Sm4Cipher(Sm4Engine(_backupKey(passphrase, saltHex: salt)));
     return jsonEncode(<String, dynamic>{
       'format': 'railgo.cert.backup',
-      'v': 1,
+      'v': 2,
       'alg': 'SM4-CBC + PBKDF2-SHA256(100000)',
+      'salt': salt,
       'payload': cipher.encryptStringToBase64(jsonEncode(bundle)),
     });
   }
@@ -303,14 +304,33 @@ class CertificateRepository {
     if (!g.passed) {
       throw const GateDeniedException();
     }
-    final map = jsonDecode(envelope);
-    if (map is! Map<String, dynamic> || map['format'] != 'railgo.cert.backup') {
+    final decoded = jsonDecode(envelope);
+    if (decoded is! Map ||
+        decoded['format'] != 'railgo.cert.backup') {
       throw const FormatException('不是 RailGo 证件备份文件');
     }
-    final cipher = Sm4Cipher(Sm4Engine(_backupKey(passphrase)));
-    final bundle =
-        jsonDecode(cipher.decryptStringFromBase64(map['payload'] as String))
-            as Map<String, dynamic>;
+    // 审计 B-02 同类加固：字段类型先验后用，坏文件统一 FormatException
+    final payload = decoded['payload'];
+    if (payload is! String || payload.isEmpty) {
+      throw const FormatException('备份文件损坏（payload 缺失）');
+    }
+    // v2 信封带随机盐；v1 旧信封回退固定盐（向后兼容）
+    final saltField = decoded['salt'];
+    final saltHex = saltField is String &&
+            RegExp(r'^[0-9a-fA-F]{32}$').hasMatch(saltField)
+        ? saltField
+        : kLegacyBackupSalt;
+    final cipher = Sm4Cipher(Sm4Engine(_backupKey(passphrase, saltHex: saltHex)));
+    final Object bundleRaw;
+    try {
+      bundleRaw = jsonDecode(cipher.decryptStringFromBase64(payload));
+    } on FormatException {
+      throw const FormatException('口令错误或备份损坏');
+    }
+    if (bundleRaw is! Map<String, dynamic>) {
+      throw const FormatException('备份文件损坏（内容结构异常）');
+    }
+    final bundle = bundleRaw;
     final list = bundle['certificates'];
     if (list is! List) {
       throw const FormatException('备份文件损坏（certificates 缺失）');
@@ -344,11 +364,21 @@ class CertificateRepository {
     }
   }
 
-  static List<int> _backupKey(String passphrase) =>
+  /// v1 固定盐（仅用于导入旧信封；新导出不再使用）
+  static const String kLegacyBackupSalt = 'railgo.cert.backup.v1';
+
+  static List<int> _backupKey(String passphrase, {String? saltHex}) =>
       Sm4KeyService.deriveKeyFromPin(
         passphrase,
-        salt: 'railgo.cert.backup.v1',
+        salt: saltHex ?? kLegacyBackupSalt,
       );
+
+  static String _randomSaltHex() {
+    final r = Random.secure();
+    return List<int>.generate(16, (_) => r.nextInt(256))
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
 }
 
 class CertImportResult {
@@ -388,7 +418,13 @@ class PrefsCertificateStorage implements CertificateStorage {
       final m = jsonDecode(raw) as Map<String, dynamic>;
       return m.map((k, v) => MapEntry(k, v as String));
     } catch (_) {
-      return <String, String>{}; // 损坏 → 空（容灾）
+      // 审计 B-02：损坏数据先隔离留档，防止下次 store() 覆盖后无从恢复
+      final raw = _prefs.getString(_kKey);
+      if (raw != null && raw.isNotEmpty) {
+        await _prefs.setString(
+            '$_kKey.corrupt.${DateTime.now().millisecondsSinceEpoch}', raw);
+      }
+      return <String, String>{}; // 当前会话视为空库（容灾）
     }
   }
 

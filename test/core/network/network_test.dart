@@ -53,6 +53,42 @@ void main() {
       expect(parsed['x']!.length, 1);
       expect(parsed['x']!.first.url, 'https://ok');
     });
+    test('服务发现过滤非 https 端点（审计 R-01）', () {
+      final parsed = parseServiceEndpoints([
+        {
+          'train': <dynamic>[
+            {'desc': '明文', 'url': 'http://evil.example'},
+            {'desc': '安全', 'url': 'https://ok.example'},
+            {'desc': '脚本', 'url': 'javascript:alert(1)'},
+            {'desc': '带凭据', 'url': 'https://user:pass@ok.example'},
+          ]
+        },
+      ]);
+      expect(parsed['train']!.length, 1);
+      expect(parsed['train']!.first.url, 'https://ok.example');
+    });
+  });
+
+  group('服务源 URL 安全校验（审计 R-01）', () {
+    test('合法 https 归一化：容忍空白与尾斜杠，保留端口', () {
+      expect(sanitizeServiceBaseUrl(' https://data.railgo.zenglingkun.cn/ '),
+          'https://data.railgo.zenglingkun.cn');
+      expect(sanitizeServiceBaseUrl('https://host:8443//'),
+          'https://host:8443');
+    });
+    test('非 https / userinfo / 空主机一律拒绝', () {
+      expect(() => sanitizeServiceBaseUrl('http://insecure.example'),
+          throwsFormatException);
+      expect(() => sanitizeServiceBaseUrl('ftp://files.example'),
+          throwsFormatException);
+      expect(() => sanitizeServiceBaseUrl('file:///etc/passwd'),
+          throwsFormatException);
+      expect(() => sanitizeServiceBaseUrl('https://user:pass@host.example'),
+          throwsFormatException);
+      expect(() => sanitizeServiceBaseUrl('https://'), throwsFormatException);
+      expect(() => sanitizeServiceBaseUrl('just-a-string'),
+          throwsFormatException);
+    });
   });
 
   group('令牌桶与并发闸门', () {

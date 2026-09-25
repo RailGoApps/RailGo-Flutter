@@ -7,6 +7,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 
 import '../../core/l10n/app_localizations.dart';
 import '../../core/utils/coord_transform.dart';
@@ -72,17 +73,44 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            // 基线语义：车次不存在或当日不开行 → 404 提示
+            // 审计 U-01：区分"车次不存在"与"网络故障"——
+            // 离线/弱网误报 404 会导致用户做出错误出行决策。
+            final error = snap.error;
+            final notFound = error is TrainNotFoundException ||
+                (error is DioException &&
+                    error.type == DioExceptionType.badResponse &&
+                    error.response?.statusCode == 404);
+            final (headline, message, icon) = notFound
+                ? ('404', '车次不存在或当日不开行', Icons.search_off)
+                : switch (error) {
+                    DioException(
+                      type: DioExceptionType.connectionTimeout ||
+                          DioExceptionType.sendTimeout ||
+                          DioExceptionType.receiveTimeout
+                    ) =>
+                      ('!', '网络连接超时，请检查网络后重试', Icons.wifi_off),
+                    DioException(type: DioExceptionType.connectionError) =>
+                      ('!', '网络连接失败，请检查网络后重试', Icons.wifi_off),
+                    DioException() => (
+                      '!',
+                      '服务暂时不可用'
+                          '（HTTP ${error.response?.statusCode ?? '错误'}）',
+                      Icons.cloud_off
+                    ),
+                    _ => ('!', '查询失败，请稍后重试', Icons.error_outline),
+                  };
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('404',
-                      style: TextStyle(
+                  Icon(icon, size: 40, color: const Color(0xFF114598)),
+                  const SizedBox(height: 8),
+                  Text(headline,
+                      style: const TextStyle(
                           fontSize: 56,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF114598))),
-                  const Text('车次不存在或当日不开行'),
+                  Text(message),
                   const SizedBox(height: 16),
                   OutlinedButton(
                     onPressed: () => setState(() => _future = _repo()

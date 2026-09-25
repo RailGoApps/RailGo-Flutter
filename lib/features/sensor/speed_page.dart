@@ -23,6 +23,7 @@ class _SpeedPageState extends State<SpeedPage> {
   final _estimator = AccelerometerSpeedEstimator();
   StreamSubscription<AccelerometerEvent>? _accelSub;
   Timer? _gpsTimer;
+  bool _polling = false; // 审计 U-03：单次定位未返回时不发起新一拍
   Position? _lastPosition;
   bool _highAccuracy = false;
   SpeedSample? _assistSample;
@@ -59,7 +60,9 @@ class _SpeedPageState extends State<SpeedPage> {
     } catch (_) {
       return;
     }
-    _gpsTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
+    _gpsTimer = Timer.periodic(const Duration(milliseconds: 1000), (_) async {
+      if (_polling) return; // 上一定位请求仍在途，跳过本拍防堆叠
+      _polling = true;
       try {
         final pos = await Geolocator.getCurrentPosition(
           locationSettings: LocationSettings(
@@ -71,6 +74,7 @@ class _SpeedPageState extends State<SpeedPage> {
       } catch (_) {
         // 单次失败忽略（兜底模式判定依赖连续失败）
       }
+      _polling = false;
     });
   }
 
@@ -87,6 +91,8 @@ class _SpeedPageState extends State<SpeedPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 审计 U-03：深色模式下硬编码黑灰文字不可见 → 改用主题自适应色
+    final subtle = Theme.of(context).colorScheme.onSurfaceVariant;
     final assistActive = AccelerometerSpeedEstimator.shouldFallback(
           locationAvailable: _lastPosition != null,
           hasSpeed: _gpsSpeedAvailable,
@@ -131,7 +137,7 @@ class _SpeedPageState extends State<SpeedPage> {
                   const Text('km/h'),
                   const SizedBox(height: 8),
                   Text(_lastPosition != null ? '您的速度' : '传感器辅助估算',
-                      style: const TextStyle(color: Colors.black54)),
+                      style: TextStyle(color: subtle)),
                 ],
               ),
             ),
@@ -140,13 +146,13 @@ class _SpeedPageState extends State<SpeedPage> {
             Text(formatSpeedWithBand(_assistSample!),
                 textAlign: TextAlign.center),
             const SizedBox(height: 4),
-            const Text('传感器辅助模式：加速度积分估算，仅供参考',
+            Text('传感器辅助模式：加速度积分估算，仅供参考',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.black45)),
+                style: TextStyle(fontSize: 12, color: subtle)),
           ] else
-            const Text('定位服务由系统提供，测速信息仅供参考',
+            Text('定位服务由系统提供，测速信息仅供参考',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.black45)),
+                style: TextStyle(fontSize: 12, color: subtle)),
           const SizedBox(height: 12),
           SwitchListTile(
             title: const Text('高精度定位'),
@@ -168,7 +174,9 @@ class _SpeedPageState extends State<SpeedPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(k, style: const TextStyle(color: Colors.black54)),
+            Text(k,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
             Text(v)
           ],
         ),

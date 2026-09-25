@@ -219,6 +219,10 @@ void main() {
     // 信封元数据可见，密文内无明文
     final meta = jsonDecode(envelope) as Map<String, dynamic>;
     expect(meta['format'], 'railgo.cert.backup');
+    expect(meta['v'], 2);
+    // 审计 R-04：每次导出独立随机盐（防跨用户彩虹表预计算）
+    expect(meta['salt'], isA<String>());
+    expect(meta['salt'], matches(RegExp(r'^[0-9a-f]{32}$')));
     expect(envelope.contains('张三'), isFalse);
 
     // 新设备（不同主密钥）凭口令导入
@@ -253,6 +257,51 @@ void main() {
     // 短口令直接拒绝
     await expectLater(
       src.exportEncrypted('short'),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('旧 v1 固定盐信封可导入（向后兼容）', () async {
+    // 手工构造旧格式信封（无 salt 字段，固定盐派生）
+    final legacyKey =
+        Sm4KeyService.deriveKeyFromPin('password123', salt: 'railgo.cert.backup.v1');
+    final bundle = jsonEncode(<String, dynamic>{
+      'v': 1,
+      'certificates': [cert.toPlainJson()],
+    });
+    final payload =
+        Sm4Cipher(Sm4Engine(legacyKey)).encryptStringToBase64(bundle);
+    final legacyEnvelope = jsonEncode(<String, dynamic>{
+      'format': 'railgo.cert.backup',
+      'v': 1,
+      'alg': 'SM4-CBC + PBKDF2-SHA256(100000)',
+      'payload': payload,
+    });
+
+    final dst = CertificateRepository(
+      gate: const _FakeGate(true),
+      keySource: _FixedKey(_k(9)),
+      storage: _MemStorage(),
+    );
+    final r = await dst.importEncrypted('password123', legacyEnvelope);
+    expect(r.added, 1);
+    expect((await dst.unlockAll()).first.name, '张三');
+  });
+
+  test('损坏信封（payload 非字符串/缺失）→ FormatException 而非崩溃', () async {
+    final repo = CertificateRepository(
+      gate: const _FakeGate(true),
+      keySource: _FixedKey(_k(0)),
+      storage: _MemStorage(),
+    );
+    await expectLater(
+      repo.importEncrypted(
+          'password123', '{"format":"railgo.cert.backup","v":2,"payload":123}'),
+      throwsA(isA<FormatException>()),
+    );
+    await expectLater(
+      repo.importEncrypted(
+          'password123', '{"format":"railgo.cert.backup","v":2}'),
       throwsA(isA<FormatException>()),
     );
   });

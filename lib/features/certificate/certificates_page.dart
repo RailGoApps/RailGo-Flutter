@@ -97,32 +97,60 @@ class _CertificatesPageState extends State<CertificatesPage> {
     final s = _session;
     if (s == null || !s.hasPin) return false;
     final controller = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('请输入 6 位数字 PIN'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          obscureText: true,
-          decoration: const InputDecoration(counterText: ''),
+    // 审计 U-05：对话框内联反馈失败原因/剩余次数/锁定时间，支持原地重试
+    Future<bool> attempt(String error) async {
+      if (!mounted) return false;
+      final retry = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('请输入 6 位数字 PIN'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                obscureText: true,
+                decoration: const InputDecoration(counterText: ''),
+              ),
+              if (error.isNotEmpty)
+                Text(error,
+                    style:
+                        const TextStyle(color: Colors.red, fontSize: 12)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('验证'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('验证'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return false;
-    final r = await s.verifyPin(controller.text);
-    return r.passed;
+      );
+      if (retry != true) return false;
+      if (!mounted) return false;
+      final gate = widget.gate;
+      final lock = gate?.pinLockedUntil;
+      if (lock != null) {
+        return attempt('尝试次数过多，已锁定至 ${_hm(lock)}，时间到后自动解锁');
+      }
+      final r = await s.verifyPin(controller.text);
+      if (r.passed) return true;
+      if (!mounted) return false;
+      final remaining = gate?.remainingPinAttempts;
+      final message = remaining != null && remaining > 0
+          ? 'PIN 不正确（剩余 $remaining 次尝试机会）'
+          : 'PIN 不正确';
+      controller.clear();
+      return attempt(message);
+    }
+    return attempt('');
   }
 
   void _snack(String text) {
@@ -965,8 +993,11 @@ class _CertificatesPageState extends State<CertificatesPage> {
                   label: const Text('复制密文'),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: result!));
+                    // 审计 R-09：明确告知剪贴板暴露面，引导知情操作
                     ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('已复制，可安全粘贴传输')));
+                        const SnackBar(
+                            content: Text('密文已复制。剪贴板可能被其他应用读取，'
+                                '请尽快粘贴并清除')));
                   },
                 ),
               ],
@@ -1053,6 +1084,9 @@ class _CertificatesPageState extends State<CertificatesPage> {
   String _fmtYmd(String ymd) => ymd.length == 8
       ? '${ymd.substring(0, 4)}-${ymd.substring(4, 6)}-${ymd.substring(6, 8)}'
       : ymd;
+
+  String _hm(DateTime t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   String _ymd(DateTime d) => '${d.year}${d.month.toString().padLeft(2, '0')}'
       '${d.day.toString().padLeft(2, '0')}';
