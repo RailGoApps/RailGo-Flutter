@@ -1,0 +1,31 @@
+# l10n 棘轮基线：每行 <相对路径> <CJK 字面量数>
+# 迁移完一个文件后运行 pwsh tool/l10n_scan.ps1 -Update 收缩基线
+lib/core/network/railgo_api.dart 1
+lib/core/network/rate_limiter.dart 2
+lib/core/network/service_registry.dart 18
+lib/core/security/auth_gate.dart 9
+lib/core/security/auth_service.dart 1
+lib/core/security/key_service.dart 1
+lib/core/security/security_posture.dart 16
+lib/core/utils/clock.dart 1
+lib/features/certificate/certificate_catalog.dart 235
+lib/features/certificate/certificate_repository.dart 16
+lib/features/certificate/certificate_types.dart 23
+lib/features/certificate/certificates_page.dart 122
+lib/features/certificate/id_number.dart 43
+lib/features/certificate/mrz.dart 8
+lib/features/home/home_page.dart 11
+lib/features/live_push/live_push_service.dart 3
+lib/features/oobe/eggs.dart 10
+lib/features/oobe/update_page.dart 17
+lib/features/oobe/version_compare.dart 2
+lib/features/sensor/speed_estimator.dart 2
+lib/features/sensor/speed_page.dart 11
+lib/features/station/station_selector_page.dart 8
+lib/features/train/coach_pic_page.dart 8
+lib/features/train/route_map.dart 1
+lib/features/train/train_repository.dart 1
+lib/features/train/train_result_page.dart 15
+lib/features/trip/transfer_logic.dart 9
+lib/features/trip/trip_store.dart 2
+lib/widgets/train_keyboard.dart 2

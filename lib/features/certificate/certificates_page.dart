@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/security/auth_gate.dart';
+import '../../core/security/key_service.dart';
+import '../../core/security/security_posture.dart';
 import 'certificate_catalog.dart';
 import 'certificate_repository.dart';
 import 'certificate_types.dart';
@@ -117,7 +119,8 @@ class _CertificatesPageState extends State<CertificatesPage> {
               ),
               if (error.isNotEmpty)
                 Text(error,
-                    style: const TextStyle(color: Colors.red, fontSize: 12)),
+                    style:
+                        const TextStyle(color: Colors.red, fontSize: 12)),
             ],
           ),
           actions: [
@@ -149,7 +152,6 @@ class _CertificatesPageState extends State<CertificatesPage> {
       controller.clear();
       return attempt(message);
     }
-
     return attempt('');
   }
 
@@ -844,6 +846,15 @@ class _CertificatesPageState extends State<CertificatesPage> {
   Future<void> _showPasskeySheet(BuildContext context) async {
     final gate = widget.gate;
     final pin = TextEditingController();
+    // 姿态探测只做一次（sheet 重建不重复触发安全存储自检）
+    final postureFuture = () async {
+      final kinds = await (gate?.biometricKinds() ??
+          Future.value(const <String>[]));
+      final ks = widget.repository.keySource;
+      final storageOk =
+          ks is SecureStorageKeyService ? await ks.selfTest() : true;
+      return (kinds: kinds, storageOk: storageOk);
+    }();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -860,6 +871,78 @@ class _CertificatesPageState extends State<CertificatesPage> {
           children: [
             const Text('通行密钥', style: TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
+            // Zero-Trust 安全姿态：硬件加密自检 + 生物识别 + PIN + 会话边界
+            FutureBuilder<({List<String> kinds, bool storageOk})>(
+              future: postureFuture,
+              builder: (context, snap) {
+                final kinds = snap.data?.kinds ?? const <String>[];
+                final storageOk = snap.data?.storageOk ?? false;
+                final facts = SecurityPostureFacts(
+                  secureStorageOk: storageOk,
+                  biometricKinds: kinds,
+                  pinConfigured: gate?.hasPin ?? false,
+                  sessionRelockEnabled: true, // SessionAuthGate 默认 5 分钟
+                );
+                final level = assessSecurityPosture(facts);
+                final advice = securityPostureAdvice(facts);
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              switch (level) {
+                                SecurityPostureLevel.hardened =>
+                                  Icons.verified_user,
+                                SecurityPostureLevel.standard =>
+                                  Icons.shield_outlined,
+                                SecurityPostureLevel.degraded =>
+                                  Icons.gpp_bad_outlined,
+                              },
+                              color: switch (level) {
+                                SecurityPostureLevel.hardened => Colors.green,
+                                SecurityPostureLevel.standard =>
+                                  const Color(0xFFE65100),
+                                SecurityPostureLevel.degraded => Colors.red,
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              switch (level) {
+                                SecurityPostureLevel.hardened =>
+                                  kPostureHardenedLabel,
+                                SecurityPostureLevel.standard =>
+                                  kPostureStandardLabel,
+                                SecurityPostureLevel.degraded =>
+                                  kPostureDegradedLabel,
+                              },
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                        if (advice.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          for (final a in advice)
+                            Text('· $a',
+                                style: const TextStyle(fontSize: 12)),
+                        ],
+                        const SizedBox(height: 6),
+                        const Text('硬件级加密（本地，不上传）：',
+                            style: TextStyle(fontSize: 12)),
+                        for (final n in kHardwareCryptoPostureNotes)
+                          Text('· $n',
+                              style: const TextStyle(
+                                  fontSize: 11, color: Colors.black54)),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
             FutureBuilder<List<String>>(
               future: gate?.biometricKinds() ?? Future.value(const <String>[]),
               builder: (context, snap) {
@@ -994,9 +1077,10 @@ class _CertificatesPageState extends State<CertificatesPage> {
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: result!));
                     // 审计 R-09：明确告知剪贴板暴露面，引导知情操作
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('密文已复制。剪贴板可能被其他应用读取，'
-                            '请尽快粘贴并清除')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('密文已复制。剪贴板可能被其他应用读取，'
+                                '请尽快粘贴并清除')));
                   },
                 ),
               ],

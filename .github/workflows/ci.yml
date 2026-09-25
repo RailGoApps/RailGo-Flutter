@@ -7,13 +7,16 @@
 # Jobs (in order):
 #   1. lint          - dart format check + flutter analyze --fatal-infos
 #   2. test          - flutter test --coverage + inline gate: line coverage for
-#                      lib/core/crypto (SM4) AND lib/features/trip (trip state
-#                      machine + connection checks) must each be >= 80%
+#                      8 ratcheted per-module thresholds (crypto 95 / trip 90
+#                      / network 85 / sensor 85 / utils 78 / certificate 78
+#                      / security 70 / storage 45 — audit 2026-09-25 §8)
 #   3. license-scan  - static heuristic scan of pubspec.yaml dependencies for
 #                      copyleft licenses (GPL/LGPL/AGPL/SSPL). NOT legal advice.
-#   4. build-android - obfuscated release APK + AAB (app id com.azstudio.railgo)
-#   5. build-ios     - unsigned release build (无签名产物，供侧载/企业重签)
-#   6. build-harmony - placeholder (continue-on-error): HarmonyOS has no
+#   4. l10n-scan     - ratchet gate: no new hardcoded CJK string literals
+#                      beyond tool/l10n_baseline.txt (audit §8)
+#   5. build-android - obfuscated release APK + AAB (app id com.azstudio.railgo)
+#   6. build-ios     - unsigned release build (无签名产物，供侧载/企业重签)
+#   7. build-harmony - placeholder (continue-on-error): HarmonyOS has no
 #                      official GitHub-hosted runner
 #
 # The workflow is also reusable: release.yml calls it via workflow_call to
@@ -92,7 +95,7 @@ jobs:
           fi
 
   test:
-    name: Test + coverage gate (core modules >= 80%)
+    name: Test + coverage gate (8 modules, ratcheted)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -118,16 +121,31 @@ jobs:
       # Gate: compute line coverage ONLY for the two core module prefixes
       # (lib/core/crypto, lib/features/trip); either one below 80% fails CI.
       # Inline python parsing coverage/lcov.info — no external script files.
-      - name: Enforce core-module line coverage (>= 80%)
+      - name: Enforce per-module line coverage (ratcheted thresholds)
         run: |
           python3 - <<'PY'
-          """Coverage gate for lib/core/crypto and lib/features/trip (>= 80% each)."""
+          """Per-module coverage gate (audit 2026-09-25 §8: 8 modules).
+
+          Thresholds ratcheted from measured coverage of run 36119106541
+          (crypto 100 / trip 98 / network 93 / sensor 93 / certificate 83 /
+          utils 82 / security 63 / storage 13), then tightened where this
+          batch of unit tests lifts the floor. Raise thresholds only with
+          matching test additions — never lower them to pass.
+          """
           import os
           import sys
 
           LCOV = "coverage/lcov.info"
-          THRESHOLD = 80.0
-          PREFIXES = ("lib/core/crypto", "lib/features/trip")
+          THRESHOLDS = {
+              "lib/core/crypto": 95.0,
+              "lib/features/trip": 90.0,
+              "lib/core/network": 85.0,
+              "lib/features/sensor": 85.0,
+              "lib/core/utils": 78.0,
+              "lib/features/certificate": 78.0,
+              "lib/core/security": 70.0,
+              "lib/core/storage": 45.0,
+          }
 
           if not os.path.isfile(LCOV):
               print("::error::coverage report not found at %s - did 'flutter test --coverage' run?" % LCOV)
@@ -169,8 +187,8 @@ jobs:
               return p == pre or p.startswith(pre + "/") or (pre + "/") in p
 
           failed = False
-          print("Core module line coverage (threshold %.1f%%):" % THRESHOLD)
-          for prefix in PREFIXES:
+          print("Per-module line coverage (ratcheted):")
+          for prefix, THRESHOLD in sorted(THRESHOLDS.items()):
               files = [r for r in records if under(r[0], prefix)]
               total = sum(len(h) for _, h in files)
               covered = sum(1 for _, h in files for x in h if x > 0)
@@ -299,9 +317,25 @@ jobs:
           print("Note: static heuristic scan only - NOT legal advice.")
           PY
 
+  # ─── l10n 棘轮（审计 §8：阻止硬编码 CJK 字符串债务新增） ───
+  l10n-scan:
+    name: L10n ratchet (no new hardcoded CJK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ubuntu runner 预装 pwsh；本地 Windows/开发机同为 PowerShell，零 Python 依赖
+      - name: Run l10n ratchet scan
+        shell: pwsh
+        run: ./tool/l10n_scan.ps1
+
   build-android:
     name: Build Android (release APK + AAB, obfuscated)
-    needs: [lint, test, license-scan]
+    needs: [lint, test, license-scan, l10n-scan]
     if: ${{ github.event_name != 'workflow_call' || inputs.run-builds }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -366,7 +400,7 @@ jobs:
 
   build-ios:
     name: Build iOS (release, no codesign)
-    needs: [lint, test, license-scan]
+    needs: [lint, test, license-scan, l10n-scan]
     if: ${{ github.event_name != 'workflow_call' || inputs.run-builds }}
     runs-on: macos-latest
     timeout-minutes: 60
@@ -458,7 +492,7 @@ jobs:
   # ============================================================================
   report:
     name: Consolidated error report
-    needs: [lint, test, license-scan, build-android, build-ios, build-harmony]
+    needs: [lint, test, license-scan, l10n-scan, build-android, build-ios, build-harmony]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -475,6 +509,7 @@ jobs:
           R_LINT: ${{ needs.lint.result }}
           R_TEST: ${{ needs.test.result }}
           R_LIC: ${{ needs.license-scan.result }}
+          R_L10N: ${{ needs.l10n-scan.result }}
           R_AND: ${{ needs.build-android.result }}
           R_IOS: ${{ needs.build-ios.result }}
           R_HAR: ${{ needs.build-harmony.result }}
@@ -488,12 +523,13 @@ jobs:
             echo "| lint | $(icon "$R_LINT") $R_LINT |"
             echo "| test (+coverage gate) | $(icon "$R_TEST") $R_TEST |"
             echo "| license-scan | $(icon "$R_LIC") $R_LIC |"
+            echo "| l10n-scan (ratchet) | $(icon "$R_L10N") $R_L10N |"
             echo "| build-android | $(icon "$R_AND") $R_AND |"
             echo "| build-ios | $(icon "$R_IOS") $R_IOS |"
             echo "| build-harmony (placeholder) | $(icon "$R_HAR") $R_HAR |"
             echo
           } > report.md
-          if [ "$R_LINT$R_TEST$R_LIC$R_AND$R_IOS" != "successsuccesssuccesssuccesssuccess" ]; then
+          if [ "$R_LINT$R_TEST$R_LIC$R_L10N$R_AND$R_IOS" != "successsuccesssuccesssuccesssuccesssuccess" ]; then
             echo "HAS_FAILURE=1" >> "$GITHUB_ENV"
           else
             echo "### 全部通过 🎉" >> report.md

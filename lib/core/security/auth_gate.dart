@@ -212,8 +212,8 @@ class LocalAuthGate implements AuthGate {
     if (shift > 5) shift = 5;
     var seconds = kInitialLockout.inSeconds << shift;
     if (seconds > kMaxLockout.inSeconds) seconds = kMaxLockout.inSeconds;
-    await _prefs?.setInt(_kLockUntil,
-        _clock().add(Duration(seconds: seconds)).millisecondsSinceEpoch);
+    await _prefs?.setInt(
+        _kLockUntil, _clock().add(Duration(seconds: seconds)).millisecondsSinceEpoch);
     await _prefs?.setInt(_kFailCount, 0); // 锁定期满后重新计数
   }
 
@@ -276,35 +276,73 @@ class LocalAuthGate implements AuthGate {
 /// 目的：一次生物识别覆盖"读/写/删/导出"，同时保证任何路径都先过门禁——
 /// 红队规则不变：所有敏感操作必须消费 [GateResult.passed == true]。
 class SessionAuthGate implements AuthGate {
-  SessionAuthGate(this._inner);
+  /// [maxUnlockAge]：Zero-Trust 会话边界——授权并非终身有效，
+/// 超时后下一次敏感操作必须重新通过生物识别/PIN（默认 5 分钟）。
+  SessionAuthGate(this._inner,
+      {this.maxUnlockAge = const Duration(minutes: 5),
+      DateTime Function()? clock})
+      : _clock = clock ?? DateTime.now;
 
   final AuthGate _inner;
+
+  /// 授权最长有效期；null 表示会话内永不过期（不建议）
+  final Duration? maxUnlockAge;
+  final DateTime Function() _clock;
+
   bool _passed = false;
+  DateTime? _unlockedAt;
 
   bool get unlocked => _passed;
 
-  void lock() => _passed = false;
+  void lock() {
+    _passed = false;
+    _unlockedAt = null;
+  }
+
+  /// 授权是否仍在有效期内（未配置时长则视为有效）
+  bool get _withinUnlockWindow {
+    final age = maxUnlockAge;
+    final at = _unlockedAt;
+    if (age == null || at == null) return true;
+    return _clock().difference(at) < age;
+  }
+
+  /// Zero-Trust：过期会话静默失效，后续操作重新走完整门禁
+  void _expireIfStale() {
+    if (_passed && !_withinUnlockWindow) {
+      _passed = false;
+      _unlockedAt = null;
+    }
+  }
 
   @override
   bool get hasPin => _inner.hasPin;
 
   @override
   Future<GateResult> requireUnlock({String reason = '访问加密证件'}) async {
+    _expireIfStale();
     if (_passed) {
       return const GateResult(passed: true, method: GateMethod.biometric);
     }
     final r = await _inner.requireUnlock(reason: reason);
-    if (r.passed) _passed = true;
+    if (r.passed) {
+      _passed = true;
+      _unlockedAt = _clock();
+    }
     return r;
   }
 
   @override
   Future<GateResult> verifyPin(String input) async {
+    _expireIfStale();
     if (_passed) {
       return const GateResult(passed: true, method: GateMethod.pin);
     }
     final r = await _inner.verifyPin(input);
-    if (r.passed) _passed = true;
+    if (r.passed) {
+      _passed = true;
+      _unlockedAt = _clock();
+    }
     return r;
   }
 

@@ -66,10 +66,11 @@ class TrainKeyboard extends StatelessWidget {
       ),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
+        // RTL 审查（审计 §8）：确认键贴"文本结束侧"，用方向感知 API
         Align(
-          alignment: Alignment.centerRight,
+          alignment: AlignmentDirectional.centerEnd,
           child: Padding(
-            padding: const EdgeInsets.only(right: 8, bottom: 6),
+            padding: const EdgeInsetsDirectional.only(end: 8, bottom: 6),
             child: FilledButton(onPressed: onConfirm, child: const Text('确认')),
           ),
         ),

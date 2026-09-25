@@ -57,6 +57,20 @@ class SecureStorageKeyService implements Sm4KeySource {
 
   static Uint8List _generateKey() => Uint8List.fromList(
       List<int>.generate(16, (_) => Random.secure().nextInt(256)));
+
+  /// Zero-Trust 自检：探测安全存储读写（独立探测键，不触碰主密钥条目）。
+  /// 用于证件页安全姿态面板判断"硬件级加密是否可用"。
+  Future<bool> selfTest() async {
+    const probeKey = 'railgo.sm4.probe';
+    try {
+      await _storage.write(key: probeKey, value: 'ok');
+      final v = await _storage.read(key: probeKey);
+      await _storage.delete(key: probeKey);
+      return v == 'ok';
+    } catch (_) {
+      return false;
+    }
+  }
 }
 
 class Sm4KeyService {

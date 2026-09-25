@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 
 import '../../core/network/railgo_api.dart';
+import 'version_compare.dart';
 
 const String kAppVersionText = '3.0.0 Build 30000';
 
@@ -65,27 +66,25 @@ class _UpdatePageState extends State<UpdatePage> {
       UpdateCheckResult? appResult;
       if (widget.isAndroid) {
         final pack = await widget.api.androidPackUrl();
-        final latestApp =
-            (data?['appVersion'] ?? data?['pack'] ?? '').toString();
+        final latestApp = (data?['appVersion'] ?? data?['pack'] ?? '').toString();
         appResult = UpdateCheckResult(
           latest: latestApp,
           current: kAppVersionText,
-          hasUpdate: _isNewerVersion(latestApp, kAppVersionText),
+          hasUpdate: isNewerVersion(latestApp, kAppVersionText),
           downloadUrl: (pack.data?['data'] is Map)
               ? pack.data!['data']['url'] as String?
               : null,
         );
       }
       final dbUrl = await widget.api.offlineDbUrl();
-      final latestDb =
-          (data?['dbVersion'] ?? data?['latest_db'] ?? '').toString();
+      final latestDb = (data?['dbVersion'] ?? data?['latest_db'] ?? '').toString();
       final dbResult = UpdateCheckResult(
         latest: latestDb,
         current: widget.currentDbVersion,
         hasUpdate: latestDb.isNotEmpty && latestDb != widget.currentDbVersion,
         downloadUrl: (dbUrl.data?['data'] is Map)
             ? dbUrl.data!['data']['url'] as String?
-            : null,
+              : null,
       );
       setState(() {
         _appResult = appResult;
@@ -135,28 +134,6 @@ class _UpdatePageState extends State<UpdatePage> {
     );
   }
 
-  /// 语义化版本比较：提取首个 x.y.z 三元组比较（"2.0.6 Build 20006"
-  /// 对 "3.0.0 Build 30000" → 非更新）。无法解析时返回 false（不误报）。
-  static bool _isNewerVersion(String latest, String current) {
-    final l = _versionTuple(latest);
-    final c = _versionTuple(current);
-    if (l == null || c == null) return false;
-    for (var i = 0; i < 3; i++) {
-      if (l[i] != c[i]) return l[i] > c[i];
-    }
-    return false;
-  }
-
-  static List<int>? _versionTuple(String s) {
-    final m = RegExp(r'(\d+)\.(\d+)\.(\d+)').firstMatch(s);
-    if (m == null) return null;
-    return [
-      int.parse(m.group(1)!),
-      int.parse(m.group(2)!),
-      int.parse(m.group(3)!)
-    ];
-  }
-
   Widget _card(UpdateCheckResult? r) {
     if (_loading) {
       return const Card(
@@ -196,38 +173,39 @@ class _UpdatePageState extends State<UpdatePage> {
             const Divider(height: 20),
             Text('当前版本：${r.current}'),
             if (r.hasUpdate) Text('最新版本：${r.latest}'),
-            if (r.hasUpdate)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: FilledButton(
-                  // 审计 U-04：死按钮 → 校验 https 后复制下载地址
-                  // （url_launcher 尚未引入，浏览器打开由用户完成）
-                  onPressed: r.downloadUrl == null
-                      ? null
-                      : () async {
-                          final url = r.downloadUrl!;
-                          final uri = Uri.tryParse(url);
-                          if (uri == null ||
-                              !uri.hasScheme ||
-                              uri.scheme != 'https') {
-                            _snack('下载地址无效，请联系开发者');
-                            return;
-                          }
-                          await Clipboard.setData(ClipboardData(text: url));
-                          if (!mounted) return;
-                          _snack('下载地址已复制，请在浏览器打开');
-                        },
-                  child: const Text('立即更新'),
-                ),
-              ),
-            if (r.hasUpdate && r.downloadUrl == null)
-              const Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Text(
-                  '暂无下载地址（新版本可能尚未发布）',
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-              ),
+                if (r.hasUpdate)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: FilledButton(
+                      // 审计 U-04：死按钮 → 校验 https 后复制下载地址
+                      // （url_launcher 尚未引入，浏览器打开由用户完成）
+                      onPressed: r.downloadUrl == null
+                          ? null
+                          : () async {
+                              final url = r.downloadUrl!;
+                              final uri = Uri.tryParse(url);
+                              if (uri == null ||
+                                  !uri.hasScheme ||
+                                  uri.scheme != 'https') {
+                                _snack('下载地址无效，请联系开发者');
+                                return;
+                              }
+                              await Clipboard.setData(
+                                  ClipboardData(text: url));
+                              if (!mounted) return;
+                              _snack('下载地址已复制，请在浏览器打开');
+                            },
+                      child: const Text('立即更新'),
+                    ),
+                  ),
+                if (r.hasUpdate && r.downloadUrl == null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Text(
+                      '暂无下载地址（新版本可能尚未发布）',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ),
           ],
         ),
       ),
