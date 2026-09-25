@@ -31,7 +31,6 @@ void main() {
       biometricKinds: [],
       pinConfigured: false,
       sessionRelockEnabled: true,
-      deviceCredentialLikelySet: false,
     );
     expect(assessSecurityPosture(facts), SecurityPostureLevel.degraded);
     expect(securityPostureAdvice(facts).where((a) => a.contains('PIN')),

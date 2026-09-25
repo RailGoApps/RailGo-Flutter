@@ -292,7 +292,11 @@ class SessionAuthGate implements AuthGate {
   bool _passed = false;
   DateTime? _unlockedAt;
 
-  bool get unlocked => _passed;
+  /// Zero-Trust：读取会话状态时同样做过期判定（不暴露过期真值）
+  bool get unlocked {
+    _expireIfStale();
+    return _passed;
+  }
 
   void lock() {
     _passed = false;

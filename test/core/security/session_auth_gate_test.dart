@@ -33,13 +33,9 @@ class _CountingGate implements AuthGate {
 
 void main() {
   test('窗口内：一次授权覆盖后续敏感操作（不重复弹生物识别）', () async {
-    var now = DateTime(2026, 9, 25, 12, 0);
+    var now = DateTime(2026, 9, 25, 12);
     final inner = _CountingGate(true);
-    final gate = SessionAuthGate(
-      inner,
-      maxUnlockAge: const Duration(minutes: 5),
-      clock: () => now,
-    );
+    final gate = SessionAuthGate(inner, clock: () => now);
 
     final r1 = await gate.requireUnlock(reason: '查看');
     expect(r1.passed, isTrue);
@@ -51,13 +47,9 @@ void main() {
   });
 
   test('超时：授权静默失效，下一次操作必须重新认证（Zero-Trust）', () async {
-    var now = DateTime(2026, 9, 25, 12, 0);
+    var now = DateTime(2026, 9, 25, 12);
     final inner = _CountingGate(true);
-    final gate = SessionAuthGate(
-      inner,
-      maxUnlockAge: const Duration(minutes: 5),
-      clock: () => now,
-    );
+    final gate = SessionAuthGate(inner, clock: () => now);
 
     expect((await gate.requireUnlock()).passed, isTrue);
     now = now.add(const Duration(minutes: 5, seconds: 1));
@@ -68,13 +60,9 @@ void main() {
   });
 
   test('lock() 立即失效；verifyPin 同样受会话窗口约束', () async {
-    var now = DateTime(2026, 9, 25, 12, 0);
+    var now = DateTime(2026, 9, 25, 12);
     final inner = _CountingGate(true);
-    final gate = SessionAuthGate(
-      inner,
-      maxUnlockAge: const Duration(minutes: 5),
-      clock: () => now,
-    );
+    final gate = SessionAuthGate(inner, clock: () => now);
 
     await gate.requireUnlock();
     gate.lock();
@@ -90,7 +78,7 @@ void main() {
   });
 
   test('maxUnlockAge=null：会话内不过期（兼容旧行为）', () async {
-    var now = DateTime(2026, 9, 25, 12, 0);
+    var now = DateTime(2026, 9, 25, 12);
     final inner = _CountingGate(true);
     final gate = SessionAuthGate(inner, maxUnlockAge: null, clock: () => now);
 
