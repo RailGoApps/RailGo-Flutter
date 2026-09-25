@@ -65,7 +65,8 @@ class _UpdatePageState extends State<UpdatePage> {
       UpdateCheckResult? appResult;
       if (widget.isAndroid) {
         final pack = await widget.api.androidPackUrl();
-        final latestApp = (data?['appVersion'] ?? data?['pack'] ?? '').toString();
+        final latestApp =
+            (data?['appVersion'] ?? data?['pack'] ?? '').toString();
         appResult = UpdateCheckResult(
           latest: latestApp,
           current: kAppVersionText,
@@ -76,14 +77,15 @@ class _UpdatePageState extends State<UpdatePage> {
         );
       }
       final dbUrl = await widget.api.offlineDbUrl();
-      final latestDb = (data?['dbVersion'] ?? data?['latest_db'] ?? '').toString();
+      final latestDb =
+          (data?['dbVersion'] ?? data?['latest_db'] ?? '').toString();
       final dbResult = UpdateCheckResult(
         latest: latestDb,
         current: widget.currentDbVersion,
         hasUpdate: latestDb.isNotEmpty && latestDb != widget.currentDbVersion,
         downloadUrl: (dbUrl.data?['data'] is Map)
             ? dbUrl.data!['data']['url'] as String?
-              : null,
+            : null,
       );
       setState(() {
         _appResult = appResult;
@@ -148,7 +150,11 @@ class _UpdatePageState extends State<UpdatePage> {
   static List<int>? _versionTuple(String s) {
     final m = RegExp(r'(\d+)\.(\d+)\.(\d+)').firstMatch(s);
     if (m == null) return null;
-    return [int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!)];
+    return [
+      int.parse(m.group(1)!),
+      int.parse(m.group(2)!),
+      int.parse(m.group(3)!)
+    ];
   }
 
   Widget _card(UpdateCheckResult? r) {
@@ -190,39 +196,38 @@ class _UpdatePageState extends State<UpdatePage> {
             const Divider(height: 20),
             Text('当前版本：${r.current}'),
             if (r.hasUpdate) Text('最新版本：${r.latest}'),
-                if (r.hasUpdate)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: FilledButton(
-                      // 审计 U-04：死按钮 → 校验 https 后复制下载地址
-                      // （url_launcher 尚未引入，浏览器打开由用户完成）
-                      onPressed: r.downloadUrl == null
-                          ? null
-                          : () async {
-                              final url = r.downloadUrl!;
-                              final uri = Uri.tryParse(url);
-                              if (uri == null ||
-                                  !uri.hasScheme ||
-                                  uri.scheme != 'https') {
-                                _snack('下载地址无效，请联系开发者');
-                                return;
-                              }
-                              await Clipboard.setData(
-                                  ClipboardData(text: url));
-                              if (!mounted) return;
-                              _snack('下载地址已复制，请在浏览器打开');
-                            },
-                      child: const Text('立即更新'),
-                    ),
-                  ),
-                if (r.hasUpdate && r.downloadUrl == null)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Text(
-                      '暂无下载地址（新版本可能尚未发布）',
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
-                    ),
-                  ),
+            if (r.hasUpdate)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: FilledButton(
+                  // 审计 U-04：死按钮 → 校验 https 后复制下载地址
+                  // （url_launcher 尚未引入，浏览器打开由用户完成）
+                  onPressed: r.downloadUrl == null
+                      ? null
+                      : () async {
+                          final url = r.downloadUrl!;
+                          final uri = Uri.tryParse(url);
+                          if (uri == null ||
+                              !uri.hasScheme ||
+                              uri.scheme != 'https') {
+                            _snack('下载地址无效，请联系开发者');
+                            return;
+                          }
+                          await Clipboard.setData(ClipboardData(text: url));
+                          if (!mounted) return;
+                          _snack('下载地址已复制，请在浏览器打开');
+                        },
+                  child: const Text('立即更新'),
+                ),
+              ),
+            if (r.hasUpdate && r.downloadUrl == null)
+              const Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Text(
+                  '暂无下载地址（新版本可能尚未发布）',
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ),
           ],
         ),
       ),

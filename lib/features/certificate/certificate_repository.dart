@@ -305,8 +305,7 @@ class CertificateRepository {
       throw const GateDeniedException();
     }
     final decoded = jsonDecode(envelope);
-    if (decoded is! Map ||
-        decoded['format'] != 'railgo.cert.backup') {
+    if (decoded is! Map || decoded['format'] != 'railgo.cert.backup') {
       throw const FormatException('不是 RailGo 证件备份文件');
     }
     // 审计 B-02 同类加固：字段类型先验后用，坏文件统一 FormatException
@@ -316,11 +315,12 @@ class CertificateRepository {
     }
     // v2 信封带随机盐；v1 旧信封回退固定盐（向后兼容）
     final saltField = decoded['salt'];
-    final saltHex = saltField is String &&
-            RegExp(r'^[0-9a-fA-F]{32}$').hasMatch(saltField)
-        ? saltField
-        : kLegacyBackupSalt;
-    final cipher = Sm4Cipher(Sm4Engine(_backupKey(passphrase, saltHex: saltHex)));
+    final saltHex =
+        saltField is String && RegExp(r'^[0-9a-fA-F]{32}$').hasMatch(saltField)
+            ? saltField
+            : kLegacyBackupSalt;
+    final cipher =
+        Sm4Cipher(Sm4Engine(_backupKey(passphrase, saltHex: saltHex)));
     final Object bundleRaw;
     try {
       // strict-casts：dynamic → Object 需显式收口

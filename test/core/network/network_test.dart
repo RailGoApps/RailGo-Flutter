@@ -73,8 +73,8 @@ void main() {
     test('合法 https 归一化：容忍空白与尾斜杠，保留端口', () {
       expect(sanitizeServiceBaseUrl(' https://data.railgo.zenglingkun.cn/ '),
           'https://data.railgo.zenglingkun.cn');
-      expect(sanitizeServiceBaseUrl('https://host:8443//'),
-          'https://host:8443');
+      expect(
+          sanitizeServiceBaseUrl('https://host:8443//'), 'https://host:8443');
     });
     test('非 https / userinfo / 空主机一律拒绝', () {
       expect(() => sanitizeServiceBaseUrl('http://insecure.example'),
@@ -86,8 +86,8 @@ void main() {
       expect(() => sanitizeServiceBaseUrl('https://user:pass@host.example'),
           throwsFormatException);
       expect(() => sanitizeServiceBaseUrl('https://'), throwsFormatException);
-      expect(() => sanitizeServiceBaseUrl('just-a-string'),
-          throwsFormatException);
+      expect(
+          () => sanitizeServiceBaseUrl('just-a-string'), throwsFormatException);
     });
   });
 

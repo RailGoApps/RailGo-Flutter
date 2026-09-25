@@ -212,8 +212,8 @@ class LocalAuthGate implements AuthGate {
     if (shift > 5) shift = 5;
     var seconds = kInitialLockout.inSeconds << shift;
     if (seconds > kMaxLockout.inSeconds) seconds = kMaxLockout.inSeconds;
-    await _prefs?.setInt(
-        _kLockUntil, _clock().add(Duration(seconds: seconds)).millisecondsSinceEpoch);
+    await _prefs?.setInt(_kLockUntil,
+        _clock().add(Duration(seconds: seconds)).millisecondsSinceEpoch);
     await _prefs?.setInt(_kFailCount, 0); // 锁定期满后重新计数
   }
 

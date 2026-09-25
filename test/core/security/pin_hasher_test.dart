@@ -88,7 +88,8 @@ void main() {
     final a = h.pbkdf2Hash('123456', 'saltA');
     final b = h.pbkdf2Hash('123456', 'saltA');
     final c = h.pbkdf2Hash('123456', 'saltB');
-    final d = const PinHasher(pbkdf2Iterations: 201).pbkdf2Hash('123456', 'saltA');
+    final d =
+        const PinHasher(pbkdf2Iterations: 201).pbkdf2Hash('123456', 'saltA');
     expect(a, b);
     expect(a, isNot(c));
     expect(a, isNot(d));

@@ -92,14 +92,17 @@ class _TrainResultPageState extends ConsumerState<TrainResultPage> {
                           DioExceptionType.receiveTimeout
                     ) =>
                       ('!', '网络连接超时，请检查网络后重试', Icons.wifi_off),
-                    DioException(type: DioExceptionType.connectionError) =>
-                      ('!', '网络连接失败，请检查网络后重试', Icons.wifi_off),
+                    DioException(type: DioExceptionType.connectionError) => (
+                        '!',
+                        '网络连接失败，请检查网络后重试',
+                        Icons.wifi_off
+                      ),
                     DioException() => (
-                      '!',
-                      '服务暂时不可用'
-                          '（HTTP ${error.response?.statusCode ?? '错误'}）',
-                      Icons.cloud_off
-                    ),
+                        '!',
+                        '服务暂时不可用'
+                            '（HTTP ${error.response?.statusCode ?? '错误'}）',
+                        Icons.cloud_off
+                      ),
                     _ => ('!', '查询失败，请稍后重试', Icons.error_outline),
                   };
             return Center(

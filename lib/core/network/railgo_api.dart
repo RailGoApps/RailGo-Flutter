@@ -28,13 +28,13 @@ class RailGoApi {
     required String date,
     bool city = false,
   }) =>
-      _client.get<List<dynamic>>(
-          ServiceCode.train, '/api/train/sts_query', query: {
-        'from': fromTelecode,
-        'to': toTelecode,
-        'date': date,
-        if (city) 'city': 'true'
-      });
+      _client.get<List<dynamic>>(ServiceCode.train, '/api/train/sts_query',
+          query: {
+            'from': fromTelecode,
+            'to': toTelecode,
+            'date': date,
+            if (city) 'city': 'true'
+          });
 
   /// V1 车站预选词：/api/station/preselect?keyword=
   Future<Response<List<dynamic>>> stationPreselect(String keyword) =>

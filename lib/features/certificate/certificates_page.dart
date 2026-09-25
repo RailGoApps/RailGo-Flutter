@@ -117,8 +117,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
               ),
               if (error.isNotEmpty)
                 Text(error,
-                    style:
-                        const TextStyle(color: Colors.red, fontSize: 12)),
+                    style: const TextStyle(color: Colors.red, fontSize: 12)),
             ],
           ),
           actions: [
@@ -150,6 +149,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
       controller.clear();
       return attempt(message);
     }
+
     return attempt('');
   }
 
@@ -994,10 +994,9 @@ class _CertificatesPageState extends State<CertificatesPage> {
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: result!));
                     // 审计 R-09：明确告知剪贴板暴露面，引导知情操作
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('密文已复制。剪贴板可能被其他应用读取，'
-                                '请尽快粘贴并清除')));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('密文已复制。剪贴板可能被其他应用读取，'
+                            '请尽快粘贴并清除')));
                   },
                 ),
               ],

@@ -263,8 +263,8 @@ void main() {
 
   test('旧 v1 固定盐信封可导入（向后兼容）', () async {
     // 手工构造旧格式信封（无 salt 字段，固定盐派生）
-    final legacyKey =
-        Sm4KeyService.deriveKeyFromPin('password123', salt: 'railgo.cert.backup.v1');
+    final legacyKey = Sm4KeyService.deriveKeyFromPin('password123',
+        salt: 'railgo.cert.backup.v1');
     final bundle = jsonEncode(<String, dynamic>{
       'v': 1,
       'certificates': [cert.toPlainJson()],
