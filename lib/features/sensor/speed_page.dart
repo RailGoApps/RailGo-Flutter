@@ -225,8 +225,7 @@ class _SpeedMonitorViewState extends State<SpeedMonitorView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-                k,
+            Text(k,
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant)),
             Text(v)

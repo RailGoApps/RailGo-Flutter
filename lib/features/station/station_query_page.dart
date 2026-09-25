@@ -322,10 +322,9 @@ class _StationQueryPageState extends State<StationQueryPage> {
                     FilledButton.icon(
                       icon: const Icon(Icons.search),
                       label: Text(l10n.stsQueryButton),
-                      onPressed:
-                          from != null && to != null && !_stsLoading
-                              ? _querySts
-                              : null,
+                      onPressed: from != null && to != null && !_stsLoading
+                          ? _querySts
+                          : null,
                     ),
                   ],
                 ),
@@ -351,8 +350,7 @@ class _StationQueryPageState extends State<StationQueryPage> {
         for (final r in _routes)
           Card(
             child: ListTile(
-              title: Text(
-                  '${r.number} · ${r.fromDepart} → ${r.toArrive}'
+              title: Text('${r.number} · ${r.fromDepart} → ${r.toArrive}'
                   '${r.dayDiff > 0 ? '  +${r.dayDiff}d' : ''}'),
               subtitle: Text('${r.type} · ${r.car} · ${r.passTime}'),
               trailing: const Icon(Icons.chevron_right),
@@ -422,8 +420,8 @@ class _StationDetailView extends StatelessWidget {
           title: Text(d.name,
               style:
                   const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
-          subtitle: Text(
-              '${d.pinyinTriple} · ${d.telecode} · ${d.types.join('/')}'),
+          subtitle:
+              Text('${d.pinyinTriple} · ${d.telecode} · ${d.types.join('/')}'),
           trailing:
               IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
         ),
@@ -454,7 +452,8 @@ class _StationDetailView extends StatelessWidget {
                   title: Text('${t.number} · ${t.type}'),
                   subtitle: Text(
                       '${t.fromStation} → ${t.toStation} · ${t.arrive}/${t.depart}'),
-                  trailing: t.stopMinutes > 0 ? Text('${t.stopMinutes}min') : null,
+                  trailing:
+                      t.stopMinutes > 0 ? Text('${t.stopMinutes}min') : null,
                 ),
             ],
           ),

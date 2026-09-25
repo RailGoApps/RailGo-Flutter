@@ -106,10 +106,9 @@ class StsRoute {
   final int dayDiff;
 }
 
-List<StsRoute> parseStsRoutes(List<dynamic> raw) =>
-    raw
-        .whereType<Map<dynamic, dynamic>>()
-        .map(StsRoute.fromMap)
-        .toList(growable: false);
+List<StsRoute> parseStsRoutes(List<dynamic> raw) => raw
+    .whereType<Map<dynamic, dynamic>>()
+    .map(StsRoute.fromMap)
+    .toList(growable: false);
 
 String _s(Object? v) => v?.toString() ?? '';

@@ -48,8 +48,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   int _tab = 0;
   String _keyboardValue = '';
   List<String> _suggestions = const [];
-  final _suggestDebouncer =
-      Debouncer(const Duration(milliseconds: 260));
+  final _suggestDebouncer = Debouncer(const Duration(milliseconds: 260));
   Timer? _ticker;
   int _versionTaps = 0;
 
@@ -143,9 +142,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(_keyboardValue.isEmpty
-                ? AppLocalizations.of(context).inputTrainHint
-                : _keyboardValue,
+            child: Text(
+                _keyboardValue.isEmpty
+                    ? AppLocalizations.of(context).inputTrainHint
+                    : _keyboardValue,
                 style: Theme.of(context).textTheme.headlineSmall),
           ),
           if (_suggestions.isNotEmpty)

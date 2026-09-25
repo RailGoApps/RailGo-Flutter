@@ -98,18 +98,12 @@ void main() {
     final now = DateTime(2026, 9, 25, 12);
 
     test('无位置 → 加速度计兜底', () {
-      expect(
-          classifySpeedSource(
-              positionTime: null, accuracy: null, now: now),
+      expect(classifySpeedSource(positionTime: null, accuracy: null, now: now),
           SpeedSource.accelerometer);
     });
 
     test('新鲜且高精度（≤25m）→ GPS 卫星', () {
-      expect(
-          classifySpeedSource(
-              positionTime: now,
-              accuracy: 10,
-              now: now),
+      expect(classifySpeedSource(positionTime: now, accuracy: 10, now: now),
           SpeedSource.gps);
       expect(
           classifySpeedSource(
@@ -120,11 +114,7 @@ void main() {
     });
 
     test('新鲜但低精度 → 基站/WiFi（不再误判为 GPS）', () {
-      expect(
-          classifySpeedSource(
-              positionTime: now,
-              accuracy: 26,
-              now: now),
+      expect(classifySpeedSource(positionTime: now, accuracy: 26, now: now),
           SpeedSource.network);
       expect(
           classifySpeedSource(
