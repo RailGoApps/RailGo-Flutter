@@ -28,6 +28,34 @@ class SpeedSample {
   final bool satelliteWeak;
 }
 
+/// 测速来源（用户反馈修复：GPS / 基站(WiFi) / 加速度计三态明确化）
+enum SpeedSource { gps, network, accelerometer }
+
+/// 测速来源分类（纯函数，可单测）。
+///
+/// 修复要点：
+///   1. **新鲜度窗口**——位置超过 [maxAge] 即视为失效，不再永远展示
+///      最后一次 GPS 速度（旧实现的隐性 bug：信号丢失后速度冻结）；
+///   2. **精度分档**——accuracy ≤ [gpsAccuracyMeters] 判为 GPS 卫星定位；
+///      更差但仍新鲜的位置来自基站/WiFi（geolocator 低精度模式）；
+///   3. 无新鲜位置 → 加速度计兜底（误差带照旧展示）。
+SpeedSource classifySpeedSource({
+  required DateTime? positionTime,
+  required double? accuracy,
+  required DateTime now,
+  Duration maxAge = const Duration(seconds: 10),
+  double gpsAccuracyMeters = 25,
+}) {
+  if (positionTime == null) return SpeedSource.accelerometer;
+  final age = now.difference(positionTime);
+  // 设备时钟极小偏差容忍：负 age 视为新鲜
+  if (age > maxAge) return SpeedSource.accelerometer;
+  if (accuracy != null && accuracy <= gpsAccuracyMeters) {
+    return SpeedSource.gps;
+  }
+  return SpeedSource.network;
+}
+
 class AccelerometerSpeedEstimator {
   AccelerometerSpeedEstimator({
     this.gravity = 9.80665,

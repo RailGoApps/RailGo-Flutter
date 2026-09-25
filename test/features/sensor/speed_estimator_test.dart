@@ -93,4 +93,63 @@ void main() {
           isFalse);
     });
   });
+
+  group('classifySpeedSource（GPS/基站/加速度计切换修复）', () {
+    final now = DateTime(2026, 9, 25, 12, 0, 0);
+
+    test('无位置 → 加速度计兜底', () {
+      expect(
+          classifySpeedSource(
+              positionTime: null, accuracy: null, now: now),
+          SpeedSource.accelerometer);
+    });
+
+    test('新鲜且高精度（≤25m）→ GPS 卫星', () {
+      expect(
+          classifySpeedSource(
+              positionTime: now,
+              accuracy: 10,
+              now: now),
+          SpeedSource.gps);
+      expect(
+          classifySpeedSource(
+              positionTime: now.subtract(const Duration(seconds: 9)),
+              accuracy: 25,
+              now: now),
+          SpeedSource.gps);
+    });
+
+    test('新鲜但低精度 → 基站/WiFi（不再误判为 GPS）', () {
+      expect(
+          classifySpeedSource(
+              positionTime: now,
+              accuracy: 26,
+              now: now),
+          SpeedSource.network);
+      expect(
+          classifySpeedSource(
+              positionTime: now.subtract(const Duration(seconds: 9)),
+              accuracy: 2000,
+              now: now),
+          SpeedSource.network);
+    });
+
+    test('位置过期（>10s）→ 立即回退加速度计（修复速度冻结 bug）', () {
+      expect(
+          classifySpeedSource(
+              positionTime: now.subtract(const Duration(seconds: 11)),
+              accuracy: 5,
+              now: now),
+          SpeedSource.accelerometer);
+    });
+
+    test('设备时钟小幅超前（负 age）→ 按新鲜处理', () {
+      expect(
+          classifySpeedSource(
+              positionTime: now.add(const Duration(milliseconds: 500)),
+              accuracy: 10,
+              now: now),
+          SpeedSource.gps);
+    });
+  });
 }

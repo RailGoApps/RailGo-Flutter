@@ -10,11 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/app_localizations.dart';
+import '../../core/network/rate_limiter.dart';
 import '../../core/security/auth_gate.dart';
 import '../../core/security/key_service.dart';
 import '../../core/storage/settings_store.dart';
 import '../../main.dart';
 import '../oobe/eggs.dart';
+import '../sensor/speed_page.dart';
+import '../station/station_query_page.dart';
 import '../../widgets/platform_adapter.dart';
 import '../../widgets/train_keyboard.dart';
 import '../certificate/certificate_repository.dart';
@@ -44,6 +47,9 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   int _tab = 0;
   String _keyboardValue = '';
+  List<String> _suggestions = const [];
+  final _suggestDebouncer =
+      Debouncer(const Duration(milliseconds: 260));
   Timer? _ticker;
   int _versionTaps = 0;
 
@@ -58,6 +64,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void dispose() {
     _ticker?.cancel();
+    _suggestDebouncer.dispose();
     super.dispose();
   }
 
@@ -67,35 +74,65 @@ class _HomePageState extends ConsumerState<HomePage> {
     final flavor = inferFlavor(Theme.of(context).platform);
     final items = [
       AdaptiveNavItem(
+          label: l10n.tabStation,
+          icon: Icons.store_outlined,
+          selectedIcon: Icons.store,
+          onTap: () => setState(() => _tab = 0)),
+      AdaptiveNavItem(
+          label: l10n.tabTrain,
+          icon: Icons.train_outlined,
+          selectedIcon: Icons.train,
+          onTap: () => setState(() => _tab = 1)),
+      AdaptiveNavItem(
           label: l10n.tabTrips,
           icon: Icons.route_outlined,
           selectedIcon: Icons.route,
-          onTap: () => setState(() => _tab = 0)),
-      AdaptiveNavItem(
-          label: l10n.tabQuery,
-          icon: Icons.search_outlined,
-          selectedIcon: Icons.search,
-          onTap: () => setState(() => _tab = 1)),
+          onTap: () => setState(() => _tab = 2)),
       AdaptiveNavItem(
           label: l10n.tabSettings,
           icon: Icons.settings_outlined,
           selectedIcon: Icons.settings,
-          onTap: () => setState(() => _tab = 2)),
+          onTap: () => setState(() => _tab = 3)),
     ];
     return Scaffold(
       body: switch (_tab) {
-        0 => const _TripBoard(),
+        0 => StationQueryPage(
+            api: ref.watch(railGoApiProvider),
+            settings: ref.watch(settingsProvider)),
         1 => _buildQueryTab(context),
+        2 => const _TripsTab(),
         _ => _buildSettingsTab(context),
       },
       bottomNavigationBar: AdaptiveBottomNav(
         flavor: flavor,
         items: items,
         selectedIndex: _tab,
-        fabIcon: Icons.train_outlined,
-        onFab: () => setState(() => _tab = 1),
       ),
     );
+  }
+
+  void _refreshSuggestions() {
+    final kw = _keyboardValue.trim();
+    if (kw.length < 2) {
+      setState(() => _suggestions = const []);
+      return;
+    }
+    _suggestDebouncer.run(() async {
+      if (!mounted) return;
+      try {
+        final resp = await ref.read(railGoApiProvider).trainPreselect(kw);
+        final list = (resp.data ?? <dynamic>[])
+            .whereType<String>()
+            .take(8)
+            .toList(growable: false);
+        if (mounted) {
+          setState(() =>
+              _suggestions = _keyboardValue.trim() == kw ? list : const []);
+        }
+      } on Exception {
+        // 预选失败静默（主查询仍有完整错误面）
+      }
+    });
   }
 
   Widget _buildQueryTab(BuildContext context) {
@@ -106,28 +143,53 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(_keyboardValue.isEmpty ? '输入车次号' : _keyboardValue,
+            child: Text(_keyboardValue.isEmpty
+                ? AppLocalizations.of(context).inputTrainHint
+                : _keyboardValue,
                 style: Theme.of(context).textTheme.headlineSmall),
           ),
+          if (_suggestions.isNotEmpty)
+            SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                children: [
+                  for (final s in _suggestions)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      child: ActionChip(
+                        label: Text(s),
+                        onPressed: () => _confirmQuery(s),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           TrainKeyboard(
             value: _keyboardValue,
-            onChanged: (v) => setState(() => _keyboardValue = v),
-            onConfirm: () {
-              // 审计 U-02：空输入时给出反馈，避免"按钮失灵"观感
-              if (_keyboardValue.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('请先输入车次号')),
-                );
-                return;
-              }
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => TrainResultPage(keyword: _keyboardValue),
-                ),
-              );
+            onChanged: (v) {
+              setState(() => _keyboardValue = v);
+              _refreshSuggestions();
             },
+            onConfirm: () => _confirmQuery(_keyboardValue),
           ),
         ],
+      ),
+    );
+  }
+
+  void _confirmQuery(String keyword) {
+    // 审计 U-02：空输入时给出反馈，避免"按钮失灵"观感
+    if (keyword.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).queryEmptyInput)),
+      );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TrainResultPage(keyword: keyword.trim()),
       ),
     );
   }
@@ -178,12 +240,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           title: const Text('更新管理'),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.of(context).pushNamed('/update'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.speed_outlined),
-          title: const Text('实时测速'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context).pushNamed('/speed'),
         ),
         ListTile(
           leading: const Icon(Icons.badge_outlined),
@@ -238,6 +294,52 @@ class _HomePageState extends ConsumerState<HomePage> {
               textAlign: TextAlign.center,
               style: const TextStyle(
                   color: Color(0xFF114598), fontWeight: FontWeight.w600)),
+        ),
+      ],
+    );
+  }
+}
+
+/// 行程 Tab：我的行程 + 实时测速（用户 UX 要求合并）
+class _TripsTab extends StatefulWidget {
+  const _TripsTab();
+
+  @override
+  State<_TripsTab> createState() => _TripsTabState();
+}
+
+class _TripsTabState extends State<_TripsTab> {
+  int _seg = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: SegmentedButton<int>(
+            segments: [
+              ButtonSegment(
+                value: 0,
+                icon: const Icon(Icons.route_outlined),
+                label: Text(l10n.segMyTrips),
+              ),
+              ButtonSegment(
+                value: 1,
+                icon: const Icon(Icons.speed_outlined),
+                label: Text(l10n.segSpeed),
+              ),
+            ],
+            selected: {_seg},
+            onSelectionChanged: (s) => setState(() => _seg = s.first),
+          ),
+        ),
+        Expanded(
+          child: switch (_seg) {
+            0 => const _TripBoard(),
+            _ => const SpeedMonitorView(),
+          },
         ),
       ],
     );

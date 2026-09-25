@@ -1,8 +1,14 @@
 // lib/features/sensor/speed_page.dart
 //
-// 实时测速页（基线 pages/speed/speed.vue 移植 + 任务书 §4.5 传感器兜底增强）：
-//   定位可用 → 系统 GPS 速度（geolocator，500ms 轮询，高/低精度切换）
-//   定位不可用 → 加速度计积分估算 + "卫星信号弱/传感器辅助模式"标识 + 误差带
+// 实时测速视图（可嵌入行程 Tab——用户 UX 要求合并；原独立页面已移除）。
+//
+// 定位来源三态（用户反馈修复）：
+//   GPS 卫星（accuracy ≤ 25m）｜基站/WiFi（新鲜但低精度）｜加速度计兜底。
+// 切换修复：
+//   1) 位置新鲜度 10s 窗口——信号丢失后速度不再"冻结"在旧值；
+//   2) 加速度计兜底 → 定位恢复 的瞬间 reset() 积分器，
+//      消除兜底期间漂移累积导致的错误速度（旧实现从未 reset 的核心 bug）；
+//   3) 每秒重估来源，GPS 轮询在途互斥防堆叠。
 library;
 
 import 'dart:async';
@@ -11,20 +17,23 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
+import '../../core/l10n/app_localizations.dart';
 import 'speed_estimator.dart';
 
-class SpeedPage extends StatefulWidget {
-  const SpeedPage({super.key});
+class SpeedMonitorView extends StatefulWidget {
+  const SpeedMonitorView({super.key});
+
   @override
-  State<SpeedPage> createState() => _SpeedPageState();
+  State<SpeedMonitorView> createState() => _SpeedMonitorViewState();
 }
 
-class _SpeedPageState extends State<SpeedPage> {
+class _SpeedMonitorViewState extends State<SpeedMonitorView> {
   final _estimator = AccelerometerSpeedEstimator();
   StreamSubscription<AccelerometerEvent>? _accelSub;
   Timer? _gpsTimer;
-  bool _polling = false; // 审计 U-03：单次定位未返回时不发起新一拍
+  bool _polling = false; // 单次定位未返回时不发起新一拍
   Position? _lastPosition;
+  SpeedSource _source = SpeedSource.accelerometer;
   bool _highAccuracy = false;
   SpeedSample? _assistSample;
 
@@ -47,7 +56,7 @@ class _SpeedPageState extends State<SpeedPage> {
   }
 
   Future<void> _startGpsPolling() async {
-    // 权限请求失败 → 自动落入传感器辅助模式（shouldFallback）
+    // 权限请求失败 → 自动落入加速度计兜底
     try {
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
@@ -61,7 +70,8 @@ class _SpeedPageState extends State<SpeedPage> {
       return;
     }
     _gpsTimer = Timer.periodic(const Duration(milliseconds: 1000), (_) async {
-      if (_polling) return; // 上一定位请求仍在途，跳过本拍防堆叠
+      _refreshSource(); // 每秒重估新鲜度（信号丢失即时切兜底）
+      if (_polling) return;
       _polling = true;
       try {
         final pos = await Geolocator.getCurrentPosition(
@@ -70,17 +80,46 @@ class _SpeedPageState extends State<SpeedPage> {
                 _highAccuracy ? LocationAccuracy.best : LocationAccuracy.low,
           ),
         );
-        if (mounted) setState(() => _lastPosition = pos);
+        if (mounted) _applyPosition(pos);
       } catch (_) {
-        // 单次失败忽略（兜底模式判定依赖连续失败）
+        // 单次失败忽略（来源判定依赖新鲜度窗口）
       }
       _polling = false;
     });
   }
 
-  bool get _gpsSpeedAvailable =>
-      _lastPosition != null &&
-      (_lastPosition!.speed > 0 || _lastPosition!.accuracy < 100);
+  void _applyPosition(Position pos) {
+    final next = classifySpeedSource(
+      positionTime: pos.timestamp,
+      accuracy: pos.accuracy,
+      now: DateTime.now(),
+    );
+    // 核心修复：兜底 → 定位恢复 的边沿触发积分器清零
+    if (_source == SpeedSource.accelerometer &&
+        next != SpeedSource.accelerometer) {
+      _estimator.reset();
+    }
+    setState(() => _lastPosition = pos);
+    _source = next;
+  }
+
+  void _refreshSource() {
+    final pos = _lastPosition;
+    final s = classifySpeedSource(
+      positionTime: pos?.timestamp,
+      accuracy: pos?.accuracy,
+      now: DateTime.now(),
+    );
+    if (s == _source) return;
+    if (mounted) {
+      setState(() => _source = s);
+    } else {
+      _source = s;
+    }
+  }
+
+  bool get _locationSpeedUsable =>
+      _source == SpeedSource.gps || _source == SpeedSource.network;
 
   @override
   void dispose() {
@@ -91,81 +130,93 @@ class _SpeedPageState extends State<SpeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 审计 U-03：深色模式下硬编码黑灰文字不可见 → 改用主题自适应色
-    final subtle = Theme.of(context).colorScheme.onSurfaceVariant;
-    final assistActive = AccelerometerSpeedEstimator.shouldFallback(
-          locationAvailable: _lastPosition != null,
-          hasSpeed: _gpsSpeedAvailable,
-        ) &&
-        _assistSample != null;
-    final kmh = _gpsSpeedAvailable
-        ? (_lastPosition!.speed * 3.6).round()
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final subtle = cs.onSurfaceVariant;
+    final pos = _lastPosition;
+    final kmh = _locationSpeedUsable
+        ? ((pos?.speed ?? 0) * 3.6).round()
         : (_assistSample != null ? (_assistSample!.speedMs * 3.6).round() : 0);
-    return Scaffold(
-      appBar: AppBar(title: const Text('实时测速')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      if (assistActive)
-                        const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Chip(
-                            avatar:
-                                Icon(Icons.satellite_alt_outlined, size: 16),
-                            label:
-                                Text('卫星信号弱', style: TextStyle(fontSize: 11)),
-                            visualDensity: VisualDensity.compact,
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                Stack(
+                  alignment: AlignmentDirectional.topEnd,
+                  children: [
+                    if (_source != SpeedSource.gps)
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Chip(
+                          avatar: Icon(
+                            _source == SpeedSource.network
+                                ? Icons.cell_tower_outlined
+                                : Icons.speed_outlined,
+                            size: 16,
                           ),
+                          label: Text(
+                            switch (_source) {
+                              SpeedSource.gps => l10n.speedSourceGps,
+                              SpeedSource.network => l10n.speedSourceNetwork,
+                              SpeedSource.accelerometer =>
+                                l10n.speedSourceAccel,
+                            },
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          visualDensity: VisualDensity.compact,
                         ),
-                      Center(
-                        child: Text('$kmh',
-                            style: const TextStyle(
-                                fontSize: 72,
-                                fontWeight: FontWeight.w800,
-                                fontFamily: 'DIN1451')),
                       ),
-                    ],
-                  ),
-                  const Text('km/h'),
-                  const SizedBox(height: 8),
-                  Text(_lastPosition != null ? '您的速度' : '传感器辅助估算',
-                      style: TextStyle(color: subtle)),
-                ],
-              ),
+                    Center(
+                      child: Text('$kmh',
+                          style: const TextStyle(
+                              fontSize: 72,
+                              fontWeight: FontWeight.w800,
+                              fontFamily: 'DIN1451')),
+                    ),
+                  ],
+                ),
+                const Text('km/h'),
+                const SizedBox(height: 8),
+                Text(
+                  _locationSpeedUsable
+                      ? l10n.speedYourSpeed
+                      : l10n.speedSensorEstimate,
+                  style: TextStyle(color: subtle),
+                ),
+              ],
             ),
           ),
-          if (assistActive && _assistSample != null) ...[
-            Text(formatSpeedWithBand(_assistSample!),
-                textAlign: TextAlign.center),
-            const SizedBox(height: 4),
-            Text('传感器辅助模式：加速度积分估算，仅供参考',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: subtle)),
-          ] else
-            Text('定位服务由系统提供，测速信息仅供参考',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: subtle)),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            title: const Text('高精度定位'),
-            value: _highAccuracy,
-            onChanged: (v) => setState(() => _highAccuracy = v),
-          ),
-          if (_lastPosition != null) ...[
-            _kv('经度', _lastPosition!.longitude.toStringAsFixed(5)),
-            _kv('纬度', _lastPosition!.latitude.toStringAsFixed(5)),
-            _kv('海拔', '${_lastPosition!.altitude.toStringAsFixed(0)}m'),
-          ],
+        ),
+        if (_source == SpeedSource.accelerometer && _assistSample != null) ...[
+          Text(formatSpeedWithBand(_assistSample!),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 4),
+          Text(l10n.speedAccelDisclaimer,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: subtle)),
+        ] else
+          Text(l10n.speedSystemProvider,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: subtle)),
+        const SizedBox(height: 12),
+        SwitchListTile(
+          title: Text(l10n.speedHighAccuracy),
+          value: _highAccuracy,
+          onChanged: (v) => setState(() => _highAccuracy = v),
+        ),
+        if (pos != null) ...[
+          _kv(l10n.speedLon, pos.longitude.toStringAsFixed(5)),
+          _kv(l10n.speedLat, pos.latitude.toStringAsFixed(5)),
+          _kv(l10n.speedAlt, '${pos.altitude.toStringAsFixed(0)}m'),
+          if (pos.accuracy.isFinite)
+            _kv(l10n.speedAccuracy, '${pos.accuracy.toStringAsFixed(0)}m'),
         ],
-      ),
+      ],
     );
   }
 
@@ -174,7 +225,8 @@ class _SpeedPageState extends State<SpeedPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(k,
+            Text(
+                k,
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant)),
             Text(v)

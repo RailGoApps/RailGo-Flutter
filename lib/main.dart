@@ -16,7 +16,6 @@ import 'core/network/rate_limiter.dart';
 import 'core/storage/settings_store.dart';
 import 'core/utils/clock.dart';
 import 'features/home/home_page.dart';
-import 'features/sensor/speed_page.dart';
 import 'features/oobe/doc_page.dart';
 import 'features/oobe/eggs.dart';
 import 'features/oobe/update_page.dart';
@@ -91,7 +90,6 @@ class RailGoApp extends ConsumerWidget {
         // 更新页走全局 API（限流令牌桶 + 用户服务源覆盖；修复旧版 stub
         // 绕过限流与 service_source 设置的问题）
         '/update': (_) => UpdatePage(api: ref.read(railGoApiProvider)),
-        '/speed': (_) => const SpeedPage(),
       },
       home: const HomePage(),
     );
