@@ -58,28 +58,32 @@ class _UpdatePageState extends State<UpdatePage> {
     try {
       final info = await widget.api.updateInfo();
       final data = info.data;
+      // 实测（2026-09-25）网关返回：{"latest_db":61,"db":"20260920",
+      // "latest_pack":30,"pack":"2.0.6 Build 20006"}——旧代码读
+      // appVersion/dbVersion（不存在的字段）导致永远显示"已是最新"。
+      // 兼容口径：app 用 appVersion ?? pack；db 用 dbVersion ?? latest_db。
       UpdateCheckResult? appResult;
       if (widget.isAndroid) {
         final pack = await widget.api.androidPackUrl();
-        final latestApp = (data?['appVersion'] ?? '').toString();
+        final latestApp = (data?['appVersion'] ?? data?['pack'] ?? '').toString();
         appResult = UpdateCheckResult(
           latest: latestApp,
           current: kAppVersionText,
-          hasUpdate: latestApp.isNotEmpty && latestApp != kAppVersionText,
+          hasUpdate: _isNewerVersion(latestApp, kAppVersionText),
           downloadUrl: (pack.data?['data'] is Map)
               ? pack.data!['data']['url'] as String?
               : null,
         );
       }
       final dbUrl = await widget.api.offlineDbUrl();
-      final latestDb = (data?['dbVersion'] ?? '').toString();
+      final latestDb = (data?['dbVersion'] ?? data?['latest_db'] ?? '').toString();
       final dbResult = UpdateCheckResult(
         latest: latestDb,
         current: widget.currentDbVersion,
         hasUpdate: latestDb.isNotEmpty && latestDb != widget.currentDbVersion,
         downloadUrl: (dbUrl.data?['data'] is Map)
             ? dbUrl.data!['data']['url'] as String?
-            : null,
+              : null,
       );
       setState(() {
         _appResult = appResult;
@@ -127,6 +131,24 @@ class _UpdatePageState extends State<UpdatePage> {
         ],
       ),
     );
+  }
+
+  /// 语义化版本比较：提取首个 x.y.z 三元组比较（"2.0.6 Build 20006"
+  /// 对 "3.0.0 Build 30000" → 非更新）。无法解析时返回 false（不误报）。
+  static bool _isNewerVersion(String latest, String current) {
+    final l = _versionTuple(latest);
+    final c = _versionTuple(current);
+    if (l == null || c == null) return false;
+    for (var i = 0; i < 3; i++) {
+      if (l[i] != c[i]) return l[i] > c[i];
+    }
+    return false;
+  }
+
+  static List<int>? _versionTuple(String s) {
+    final m = RegExp(r'(\d+)\.(\d+)\.(\d+)').firstMatch(s);
+    if (m == null) return null;
+    return [int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!)];
   }
 
   Widget _card(UpdateCheckResult? r) {

@@ -96,7 +96,7 @@ void main() {
   });
 
   test('PIN 连续错误 5 次锁定；锁定期正确 PIN 也拒绝；到期自动恢复', () async {
-    var now = DateTime(2026, 1, 1, 12, 0);
+    var now = DateTime(2026, 1, 1, 12);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final gate = LocalAuthGate(
@@ -126,7 +126,7 @@ void main() {
   });
 
   test('锁定时长指数退避且 15 分钟封顶', () async {
-    var now = DateTime(2026, 1, 1, 12, 0);
+    var now = DateTime(2026, 1, 1, 12);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final gate = LocalAuthGate(

@@ -323,7 +323,8 @@ class CertificateRepository {
     final cipher = Sm4Cipher(Sm4Engine(_backupKey(passphrase, saltHex: saltHex)));
     final Object bundleRaw;
     try {
-      bundleRaw = jsonDecode(cipher.decryptStringFromBase64(payload));
+      // strict-casts：dynamic → Object 需显式收口
+      bundleRaw = jsonDecode(cipher.decryptStringFromBase64(payload)) as Object;
     } on FormatException {
       throw const FormatException('口令错误或备份损坏');
     }
