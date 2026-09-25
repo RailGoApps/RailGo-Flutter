@@ -110,7 +110,7 @@ class _StationQueryPageState extends State<StationQueryPage> {
   Future<void> _pickStation(bool isFrom) async {
     final l10n = AppLocalizations.of(context);
     final r = await Navigator.of(context).push<StationPickResult>(
-      MaterialPageRoute<void>(
+      MaterialPageRoute<StationPickResult>(
         builder: (_) => StationSelectorPage(
           api: widget.api,
           settings: widget.settings,

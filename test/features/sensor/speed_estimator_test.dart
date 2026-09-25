@@ -95,7 +95,7 @@ void main() {
   });
 
   group('classifySpeedSource（GPS/基站/加速度计切换修复）', () {
-    final now = DateTime(2026, 9, 25, 12, 0, 0);
+    final now = DateTime(2026, 9, 25, 12);
 
     test('无位置 → 加速度计兜底', () {
       expect(

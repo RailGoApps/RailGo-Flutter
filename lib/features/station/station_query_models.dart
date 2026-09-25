@@ -20,7 +20,7 @@ class StationDetail {
   factory StationDetail.fromResponse(Map<String, dynamic> resp) {
     final d = (resp['data'] as Map?) ?? const {};
     final trains = (resp['trains'] as List? ?? const [])
-        .whereType<Map>()
+        .whereType<Map<dynamic, dynamic>>()
         .map(PassingTrain.fromMap)
         .toList(growable: false);
     return StationDetail(
@@ -56,7 +56,7 @@ class PassingTrain {
     required this.type,
   });
 
-  factory PassingTrain.fromMap(Map m) => PassingTrain(
+  factory PassingTrain.fromMap(Map<dynamic, dynamic> m) => PassingTrain(
         number: _s(m['number']),
         arrive: _s(m['arrive']),
         depart: _s(m['depart']),
@@ -87,7 +87,7 @@ class StsRoute {
   });
 
   /// sts_query 顶层数组元素（文档 366464961e0）
-  factory StsRoute.fromMap(Map m) => StsRoute(
+  factory StsRoute.fromMap(Map<dynamic, dynamic> m) => StsRoute(
         number: _s(m['number']),
         type: _s(m['type']),
         car: _s(m['car']),
@@ -107,6 +107,9 @@ class StsRoute {
 }
 
 List<StsRoute> parseStsRoutes(List<dynamic> raw) =>
-    raw.whereType<Map>().map(StsRoute.fromMap).toList(growable: false);
+    raw
+        .whereType<Map<dynamic, dynamic>>()
+        .map(StsRoute.fromMap)
+        .toList(growable: false);
 
 String _s(Object? v) => v?.toString() ?? '';
