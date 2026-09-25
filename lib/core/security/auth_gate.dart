@@ -212,8 +212,8 @@ class LocalAuthGate implements AuthGate {
     if (shift > 5) shift = 5;
     var seconds = kInitialLockout.inSeconds << shift;
     if (seconds > kMaxLockout.inSeconds) seconds = kMaxLockout.inSeconds;
-    await _prefs?.setInt(
-        _kLockUntil, _clock().add(Duration(seconds: seconds)).millisecondsSinceEpoch);
+    await _prefs?.setInt(_kLockUntil,
+        _clock().add(Duration(seconds: seconds)).millisecondsSinceEpoch);
     await _prefs?.setInt(_kFailCount, 0); // 锁定期满后重新计数
   }
 
@@ -277,7 +277,7 @@ class LocalAuthGate implements AuthGate {
 /// 红队规则不变：所有敏感操作必须消费 [GateResult.passed == true]。
 class SessionAuthGate implements AuthGate {
   /// [maxUnlockAge]：Zero-Trust 会话边界——授权并非终身有效，
-/// 超时后下一次敏感操作必须重新通过生物识别/PIN（默认 5 分钟）。
+  /// 超时后下一次敏感操作必须重新通过生物识别/PIN（默认 5 分钟）。
   SessionAuthGate(this._inner,
       {this.maxUnlockAge = const Duration(minutes: 5),
       DateTime Function()? clock})

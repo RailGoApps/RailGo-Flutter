@@ -44,7 +44,7 @@ const String kPostureDegradedLabel = '防护降级';
 /// 平台硬件加密事实（不可单测的文档性常量；与 key_service.dart 装配一致）
 const List<String> kHardwareCryptoPostureNotes = <String>[
   'Android：SM4 主密钥经 Android Keystore 包装存储'
-  '（flutter_secure_storage encryptedSharedPreferences）',
+      '（flutter_secure_storage encryptedSharedPreferences）',
   'iOS：SM4 主密钥存于 Keychain（ThisDeviceOnly，首次解锁后可用）',
   'HarmonyOS：经通用 Keystore/安全存储适配（HAP 构建后生效）',
   '密钥仅存在于内存与安全存储，绝不落明文盘（审计红队规则）',

@@ -54,8 +54,8 @@ void main() {
       sessionRelockEnabled: false,
     );
     expect(assessSecurityPosture(noRelock), SecurityPostureLevel.standard);
-    expect(securityPostureAdvice(noRelock).any((a) => a.contains('自动过期')),
-        isTrue);
+    expect(
+        securityPostureAdvice(noRelock).any((a) => a.contains('自动过期')), isTrue);
   });
 
   test('硬件加密说明常量非空（文档性回归锚点）', () {

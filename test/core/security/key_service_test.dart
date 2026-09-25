@@ -71,7 +71,8 @@ void main() {
   });
 
   test('selfTest：Keystore 损坏 → false（姿态面板据此降级）', () async {
-    final svc = SecureStorageKeyService(storage: _FakeSecureStorage(broken: true));
+    final svc =
+        SecureStorageKeyService(storage: _FakeSecureStorage(broken: true));
     expect(await svc.selfTest(), isFalse);
   });
 
@@ -88,15 +89,13 @@ void main() {
     expect(Sm4KeyService.hexToBytes(stored), k1);
   });
 
-  test('obtain：安全存储损坏且无 PIN 兜底 → 显式失败（不做空密钥假象）',
-      () async {
+  test('obtain：安全存储损坏且无 PIN 兜底 → 显式失败（不做空密钥假象）', () async {
     final svc =
         SecureStorageKeyService(storage: _FakeSecureStorage(broken: true));
     expect(svc.obtain(), throwsStateError);
   });
 
-  test('obtain：安全存储损坏但有 PIN → PBKDF2 确定性派生（灾备路径）',
-      () async {
+  test('obtain：安全存储损坏但有 PIN → PBKDF2 确定性派生（灾备路径）', () async {
     final svc = SecureStorageKeyService(
       storage: _FakeSecureStorage(broken: true),
       pinFallback: '123456',

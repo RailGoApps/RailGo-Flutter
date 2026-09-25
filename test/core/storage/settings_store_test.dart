@@ -4,10 +4,10 @@ import 'package:railgo/core/storage/settings_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('缺省值：在线模式 / 换乘 18h / OOBE 未完成 / 无 locale / 需授权关',
-      () async {
+  test('缺省值：在线模式 / 换乘 18h / OOBE 未完成 / 无 locale / 需授权关', () async {
     SharedPreferences.setMockInitialValues({});
-    final s = SharedPreferencesSettingsStore(await SharedPreferences.getInstance());
+    final s =
+        SharedPreferencesSettingsStore(await SharedPreferences.getInstance());
     expect(s.mode, AppMode.network);
     expect(s.maxTransferHours, 18);
     expect(s.oobeDone, isFalse);
@@ -32,7 +32,8 @@ void main() {
 
   test('脏数据钳制：越界原始值读取时收敛', () async {
     SharedPreferences.setMockInitialValues({'maxTransferHours': 99});
-    final s = SharedPreferencesSettingsStore(await SharedPreferences.getInstance());
+    final s =
+        SharedPreferencesSettingsStore(await SharedPreferences.getInstance());
     expect(s.maxTransferHours, 24);
   });
 
