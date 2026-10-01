@@ -368,6 +368,9 @@ jobs:
           MAIN_KT=$(find android/app/src/main -name 'MainActivity.kt' | head -1)
           # 3.27 模板为 import + 短名两处引用，需同时替换
           sed -i -e 's/io\.flutter\.embedding\.android\.FlutterActivity/io.flutter.embedding.android.FlutterFragmentActivity/g' -e 's/: FlutterActivity()/: FlutterFragmentActivity()/g' "$MAIN_KT"
+          # 高版本 Android：网络/网络状态/附近设备/设备信息等权限声明（片段在 tool/）
+          awk 'BEGIN{while((getline l < "tool/android-permissions.txt")>0) perms=perms l ORS} /<\/manifest>/{printf "%s", perms} {print}' android/app/src/main/AndroidManifest.xml > android/app/src/main/AndroidManifest.xml.tmp && mv android/app/src/main/AndroidManifest.xml.tmp android/app/src/main/AndroidManifest.xml
+          grep -c 'uses-permission' android/app/src/main/AndroidManifest.xml
           grep -n 'Activity' "$MAIN_KT" || true
 
       # Application id: com.azstudio.railgo (android/app/build.gradle(.kts))

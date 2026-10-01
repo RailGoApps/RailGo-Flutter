@@ -85,7 +85,10 @@ jobs:
             flutter create --platforms=android --org com.azstudio --project-name railgo .
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/; s/minSdk = flutter.minSdkVersion/minSdk = 23/' android/app/build.gradle*
             MAIN_KT=$(find android/app/src/main -name 'MainActivity.kt' | head -1)
-            sed -i 's/io\.flutter\.embedding\.android\.FlutterActivity/io.flutter.embedding.android.FlutterFragmentActivity/' "$MAIN_KT"
+            sed -i -e 's/io\.flutter\.embedding\.android\.FlutterActivity/io.flutter.embedding.android.FlutterFragmentActivity/g' -e 's/: FlutterActivity()/: FlutterFragmentActivity()/g' "$MAIN_KT"
+            # 高版本 Android：网络/附近设备/设备信息等权限声明（片段在 tool/）
+            awk 'BEGIN{while((getline l < "tool/android-permissions.txt")>0) perms=perms l ORS} /<\/manifest>/{printf "%s", perms} {print}' android/app/src/main/AndroidManifest.xml > android/app/src/main/AndroidManifest.xml.tmp && mv android/app/src/main/AndroidManifest.xml.tmp android/app/src/main/AndroidManifest.xml
+            grep -c 'uses-permission' android/app/src/main/AndroidManifest.xml
           fi
 
       # Application id: com.azstudio.railgo (Android + iOS)
